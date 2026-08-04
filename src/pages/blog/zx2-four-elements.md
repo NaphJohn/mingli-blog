@@ -1,4 +1,5 @@
 ---
+layout: ../../layouts/BlogPost.astro
 title: 火土风水四元素
 description: 为什么火象热烈、水象多情？四元素决定你与世界相处的方式，也是合盘配对的逻辑底色。
 pubDate: 2026-08-04

@@ -1,4 +1,5 @@
 ---
+layout: ../../../layouts/BlogPost.astro
 title: A Tour of the 12 Signs
 description: One map to read every sign's element, ruler and traits — pair it with the Zodiac Finder in the toolkit.
 pubDate: 2026-08-04

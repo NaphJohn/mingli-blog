@@ -1,4 +1,5 @@
 ---
+layout: ../../../layouts/BlogPost.astro
 title: Stems & Branches
 description: From Jia-Zi to Gui-Hai — how the sexagenary cycle encodes time, the grammar of Chinese astrology.
 pubDate: 2026-08-04

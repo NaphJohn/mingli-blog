@@ -34,7 +34,7 @@ const giscusLang = lang === 'zh' ? 'zh-CN' : 'en';
         } catch (e) {}
       })();
     </script>
-    <title>{title} · 命理笔记</title>
+    <title>{title} · {lang === 'en' ? 'Divination Notes' : '命理笔记'}</title>
     {description && <meta name="description" content={description} />}
   </head>
   <body>
@@ -306,6 +306,6 @@ const giscusLang = lang === 'zh' ? 'zh-CN' : 'en';
         restore();
       })();
     </script>
-    <footer>© 2026 命理笔记 · 托管于 GitHub Pages</footer>
+    <footer>© 2026 {lang === 'en' ? 'Divination Notes' : '命理笔记'} · {lang === 'en' ? 'Hosted on GitHub Pages' : '托管于 GitHub Pages'}</footer>
   </body>
 </html>

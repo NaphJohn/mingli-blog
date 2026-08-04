@@ -1,4 +1,5 @@
 ---
+layout: ../../../layouts/BlogPost.astro
 title: The Four Elements
 description: Why Fire burns and Water feels — the elements shape how you meet the world, and they are the bedrock of synastry.
 pubDate: 2026-08-04

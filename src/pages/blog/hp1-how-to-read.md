@@ -1,4 +1,5 @@
 ---
+layout: ../../layouts/BlogPost.astro
 title: 星座合盘怎么看
 description: 合盘不是算命，是看两个人能量场的相处方式；元素相生相克是它最直观的入口。
 pubDate: 2026-08-04

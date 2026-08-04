@@ -1,4 +1,5 @@
 ---
+layout: ../../../layouts/BlogPost.astro
 title: Charting & Ten Gods
 description: How the year/month/day/hour pillars come together, and a playful read of the Ten Gods (sibling, output, officer…).
 pubDate: 2026-08-04

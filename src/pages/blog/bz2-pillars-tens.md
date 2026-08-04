@@ -1,4 +1,5 @@
 ---
+layout: ../../layouts/BlogPost.astro
 title: 排盘与十神
 description: 年柱月柱日柱时柱怎么来，以及十神关系（比肩、食神、正官…）的趣味解读。
 pubDate: 2026-08-04

@@ -1,4 +1,5 @@
 ---
+layout: ../../../layouts/BlogPost.astro
 title: How to Read a Synastry
 description: Synastry isn't fortune-telling — it's reading how two people's energy fields meet; elements are its most intuitive entry.
 pubDate: 2026-08-04

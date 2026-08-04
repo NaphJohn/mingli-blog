@@ -1,4 +1,5 @@
 ---
+layout: ../../layouts/BlogPost.astro
 title: 天干地支入门
 description: 从甲子到癸亥，六十甲子如何用天干地支编码时间，是中国传统命理的底层语言。
 pubDate: 2026-08-04

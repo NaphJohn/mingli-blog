@@ -1,7 +1,7 @@
 ---
 const { lang = 'zh', altLang, altHref, series } = Astro.props;
-const siteName = '命理笔记';
-const base = import.meta.env.BASE_URL; // 项目页子路径，如 /LLM-blog/
+const siteName = lang === 'en' ? 'Divination Notes' : '命理笔记';
+const base = import.meta.env.BASE_URL; // 项目页子路径，如 /mingli-blog/
 const homeHref = lang === 'zh' ? base : base + 'en/';
 const seriesHref = homeHref;
 const altHrefFull = altHref ? base + altHref.replace(/^\//, '') : undefined;

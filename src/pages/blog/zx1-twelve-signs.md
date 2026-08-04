@@ -1,4 +1,5 @@
 ---
+layout: ../../layouts/BlogPost.astro
 title: 十二星座速览
 description: 一张图读懂 12 星座的元素、守护星与性格关键词，配合命理工具箱里的星座速查使用。
 pubDate: 2026-08-04
