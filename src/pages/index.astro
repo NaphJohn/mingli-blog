@@ -1,0 +1,110 @@
+---
+import SiteHeader from '../components/SiteHeader.astro';
+const base = import.meta.env.BASE_URL;
+const seriesList = [
+  {
+    name: '星座手记',
+    en: 'Zodiac Notes',
+    desc: '十二星座、四元素与守护星，看懂太阳星座之外的自己。',
+    posts: [
+      { slug: 'zx1-twelve-signs', title: '十二星座速览', desc: '一张图读懂 12 星座的元素、守护星与性格关键词。' },
+      { slug: 'zx2-four-elements', title: '火土风水四元素', desc: '为什么火象热烈、水象多情？元素决定你与世界相处的方式。' },
+    ],
+  },
+  {
+    name: '八字入门',
+    en: 'Bazi 101',
+    desc: '天干地支、排盘与十神，中国传统命理的底层语言。',
+    posts: [
+      { slug: 'bz1-stems-branches', title: '天干地支入门', desc: '从甲子到癸亥，六十甲子如何编码时间。' },
+      { slug: 'bz2-pillars-tens', title: '排盘与十神', desc: '年柱月柱日柱时柱，以及十神关系的趣味解读。' },
+    ],
+  },
+  {
+    name: '合盘与缘分',
+    en: 'Synastry',
+    desc: '星座合盘怎么看，缘分背后的元素逻辑。',
+    posts: [
+      { slug: 'hp1-how-to-read', title: '星座合盘怎么看', desc: '合盘不是算命，是看两个人能量场的相处方式。' },
+    ],
+  },
+];
+---
+
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    <title>命理笔记 · 星盘 · 八字 · 合盘 · 生辰历</title>
+    <meta name="description" content="命理笔记：星座、八字、合盘与生辰历，测测风格的命理博客。" />
+  </head>
+  <body>
+    <SiteHeader lang="zh" altLang="English" altHref="/en/" />
+    <main>
+      <section class="hero">
+        <p class="kicker">✦ 星盘 · 八字 · 合盘 · 生辰历</p>
+        <h1>命理笔记</h1>
+        <p class="hero-sub">把出生那一刻的星象与干支，讲成你能会心一笑的故事。<br />娱乐为主，文化为辅，不替你做人生决定。</p>
+        <a class="hero-cta" href={`${base}tools`}>🔮 打开命理工具箱</a>
+      </section>
+
+      <section class="tools-banner">
+        <span>三件小工具：</span>
+        <a href={`${base}tools`}>星座速查</a> · <a href={`${base}tools`}>缘分合盘</a> · <a href={`${base}tools`}>生辰卡</a>
+      </section>
+
+      {seriesList.map((s) => (
+        <section class="series-block">
+          <h2>{s.name} <span class="en">{s.en}</span></h2>
+          <p class="series-desc">{s.desc}</p>
+          <ul class="post-list">
+            {s.posts.map((p) => (
+              <li>
+                <a href={`${base}blog/${p.slug}`}>{p.title}</a>
+                <div class="date">{p.desc}</div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      <p class="foot-note">⚠️ 本站所有测算均仅供娱乐与文化了解，不构成任何人生、投资或健康建议。</p>
+    </main>
+    <footer>© 2026 命理笔记 · 托管于 GitHub Pages</footer>
+
+    <style is:global>
+      .hero { text-align: center; padding: 56px 16px 28px; }
+      .kicker { color: var(--accent); letter-spacing: 2px; font-size: 13px; margin: 0 0 8px; }
+      .hero h1 { font-size: 44px; margin: 0 0 12px; letter-spacing: 4px; }
+      .hero-sub { color: var(--muted); font-size: 16px; line-height: 1.9; margin: 0 auto 22px; max-width: 560px; }
+      .hero-cta { display: inline-block; padding: 12px 28px; border-radius: 999px; background: var(--accent); color: #fff; text-decoration: none; font-size: 16px; transition: transform .15s, opacity .15s; }
+      .hero-cta:hover { transform: translateY(-2px); opacity: .92; }
+      .tools-banner { text-align: center; color: var(--muted); font-size: 14px; margin: 12px 0 8px; }
+      .tools-banner a { color: var(--accent); text-decoration: none; }
+      .series-block { margin-top: 36px; }
+      .series-block h2 { font-size: 22px; border-left: 4px solid var(--accent); padding-left: 10px; }
+      .series-block h2 .en { font-size: 14px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+      .series-desc { color: var(--muted); font-size: 14px; margin: 6px 0 14px; }
+      .post-list { list-style: none; padding: 0; }
+      .post-list li { padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; transition: border-color .15s; }
+      .post-list li:hover { border-color: var(--accent); }
+      .post-list a { font-weight: 600; color: var(--fg); text-decoration: none; font-size: 17px; }
+      .post-list .date { color: var(--muted); font-size: 13px; margin-top: 4px; }
+      .foot-note { color: var(--muted); font-size: 13px; margin-top: 36px; text-align: center; }
+      footer { text-align: center; color: var(--muted); font-size: 13px; padding: 32px 16px; border-top: 1px solid var(--border); margin-top: 24px; }
+    </style>
+  </body>
+</html>

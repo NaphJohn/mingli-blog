@@ -1,0 +1,183 @@
+---
+import BlogPost from '../layouts/BlogPost.astro';
+---
+
+<BlogPost title="命理工具箱" description="出生日期查星座 · 两人缘分合盘 · 生辰卡" lang="zh" altLang="English" altHref="/en/tools">
+  <p class="lead">三件纯前端小工具，即开即用：查你的太阳星座、算两人的星座缘分、生成你的生辰卡。</p>
+  <p class="disclaimer">⚠️ 本页内容仅供娱乐与文化了解，不构成任何人生、投资或健康建议。</p>
+
+  <section class="tool-card">
+    <h2>🔮 星座速查</h2>
+    <p>输入出生日期，看看你的太阳星座与守护元素。</p>
+    <div class="tool-form">
+      <label>出生日期 <input type="date" id="zx-date" /></label>
+      <button id="zx-btn" class="tool-btn" type="button">查询</button>
+    </div>
+    <div id="zx-result" class="tool-result" hidden></div>
+  </section>
+
+  <section class="tool-card">
+    <h2>💞 缘分合盘</h2>
+    <p>两位的出生日期，看看星座配对指数（按元素相生相克简化测算）。</p>
+    <div class="tool-form">
+      <label>TA ① <input type="date" id="hp-a" /></label>
+      <label>TA ② <input type="date" id="hp-b" /></label>
+      <button id="hp-btn" class="tool-btn" type="button">合盘</button>
+    </div>
+    <div id="hp-result" class="tool-result" hidden></div>
+  </section>
+
+  <section class="tool-card">
+    <h2>🌙 生辰卡</h2>
+    <p>输入出生年月日，生成你的生肖、干支年柱与生辰卡。</p>
+    <div class="tool-form">
+      <label>出生日期 <input type="date" id="sc-date" /></label>
+      <button id="sc-btn" class="tool-btn" type="button">生成</button>
+    </div>
+    <div id="sc-result" class="tool-result" hidden></div>
+  </section>
+
+  <style>
+    .lead { color: var(--muted); font-size: 16px; }
+    .disclaimer { background: var(--code-bg); border: 1px dashed var(--border); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--muted); }
+    .tool-card { border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin: 20px 0; background: var(--bg); }
+    .tool-card h2 { margin-top: 0; border-left: 4px solid var(--accent); padding-left: 10px; }
+    .tool-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 10px; }
+    .tool-form label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
+    .tool-form input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
+    .tool-btn { padding: 9px 18px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform .15s, opacity .15s; }
+    .tool-btn:hover { transform: translateY(-1px); opacity: .92; }
+    .tool-result { margin-top: 16px; padding: 16px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); line-height: 1.8; }
+    .tool-result h3 { margin: 0 0 8px; font-size: 20px; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: rgba(124,92,255,0.12); color: var(--accent); margin-right: 6px; }
+    .score-ring { font-size: 40px; font-weight: 700; color: var(--accent); }
+    .sc-card { display: flex; gap: 16px; align-items: center; }
+    .sc-emoji { font-size: 56px; }
+    .sc-meta b { color: var(--accent); }
+  </style>
+
+  <script>
+    const SIGNS = [
+      { name: '白羊座', en: 'Aries', sym: '♈', start: [3, 21], end: [4, 19], el: '火', planet: '火星', traits: '热情、冲动、行动派' },
+      { name: '金牛座', en: 'Taurus', sym: '♉', start: [4, 20], end: [5, 20], el: '土', planet: '金星', traits: '稳重、务实、爱美' },
+      { name: '双子座', en: 'Gemini', sym: '♊', start: [5, 21], end: [6, 20], el: '风', planet: '水星', traits: '机敏、善变、好奇心强' },
+      { name: '巨蟹座', en: 'Cancer', sym: '♋', start: [6, 21], end: [7, 22], el: '水', planet: '月亮', traits: '顾家、敏感、念旧' },
+      { name: '狮子座', en: 'Leo', sym: '♌', start: [7, 23], end: [8, 22], el: '火', planet: '太阳', traits: '自信、大方、爱表现' },
+      { name: '处女座', en: 'Virgo', sym: '♍', start: [8, 23], end: [9, 22], el: '土', planet: '水星', traits: '细致、挑剔、追求完美' },
+      { name: '天秤座', en: 'Libra', sym: '♎', start: [9, 23], end: [10, 23], el: '风', planet: '金星', traits: '优雅、权衡、怕冲突' },
+      { name: '天蝎座', en: 'Scorpio', sym: '♏', start: [10, 24], end: [11, 22], el: '水', planet: '冥王星', traits: '深沉、专注、占有欲' },
+      { name: '射手座', en: 'Sagittarius', sym: '♐', start: [11, 23], end: [12, 21], el: '火', planet: '木星', traits: '自由、乐观、爱探索' },
+      { name: '摩羯座', en: 'Capricorn', sym: '♑', start: [12, 22], end: [1, 19], el: '土', planet: '土星', traits: '自律、坚韧、功利' },
+      { name: '水瓶座', en: 'Aquarius', sym: '♒', start: [1, 20], end: [2, 18], el: '风', planet: '天王星', traits: '独立、理性、叛逆' },
+      { name: '双鱼座', en: 'Pisces', sym: '♓', start: [2, 19], end: [3, 20], el: '水', planet: '海王星', traits: '浪漫、共情、爱幻想' },
+    ];
+    function getSign(m, d) {
+      for (const s of SIGNS) {
+        const [sm, sd] = s.start, [em, ed] = s.end;
+        if (sm < em) {
+          if ((m === sm && d >= sd) || (m === em && d <= ed) || (m > sm && m < em)) return s;
+        } else {
+          if ((m === sm && d >= sd) || (m === em && d <= ed) || m < em || m > sm) return s;
+        }
+      }
+      return SIGNS[0];
+    }
+
+    const ELEM_PAIR = {
+      '火-火': 92, '土-土': 86, '风-风': 86, '水-水': 86,
+      '火-风': 90, '风-火': 90, '土-水': 90, '水-土': 90,
+      '火-土': 72, '土-火': 72, '风-水': 70, '水-风': 70,
+      '火-水': 66, '水-火': 66, '风-土': 74, '土-风': 74,
+    };
+    function pairScore(e1, e2) {
+      return ELEM_PAIR[e1 + '-' + e2] ?? ELEM_PAIR[e2 + '-' + e1] ?? 70;
+    }
+    function pairText(score) {
+      if (score >= 90) return '天作之合，元素相生，磁场同频，越处越上头。';
+      if (score >= 82) return '相当合拍，节奏接近，磨合成本低，适合长期同行。';
+      if (score >= 72) return '互补型组合，有吸引力也有小摩擦，关键在于多沟通。';
+      return '差异带来张力，既是火花也是考验，需要彼此多一些包容。';
+    }
+
+    const ANIMALS = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+    const AEMOJI = ['🐭', '🐂', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐵', '🐔', '🐶', '🐷'];
+    const GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+    const ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    function sx(y) { return ANIMALS[(((y - 4) % 12) + 12) % 12]; }
+    function sxEmoji(y) { return AEMOJI[(((y - 4) % 12) + 12) % 12]; }
+    function gzYear(y) { return GAN[(((y - 4) % 10) + 10) % 10] + ZHI[(((y - 4) % 12) + 12) % 12]; }
+    const SC_LINES = {
+      '鼠': '机敏灵活，善抓机会，宜广结善缘。',
+      '牛': '勤恳踏实，厚积薄发，贵在坚持。',
+      '虎': '果敢有魄力，喜领风骚，宜敛锋芒。',
+      '兔': '温和细腻，左右逢源，需防优柔。',
+      '龙': '气宇轩昂，自带贵气，宜担大任。',
+      '蛇': '沉静多智，谋定后动，善藏锋。',
+      '马': '奔放热烈，喜自由，宜稳住节奏。',
+      '羊': '温润亲和，重情义，需立主见。',
+      '猴': '伶俐机变，点子多，宜深耕一艺。',
+      '鸡': '精明务实，重仪表，宜戒计较。',
+      '狗': '忠诚可靠，重信义，宜放宽心。',
+      '猪': '豁达乐天，福气旺，宜守分寸。',
+    };
+
+    function parseDate(v) {
+      if (!v) return null;
+      const [y, m, d] = v.split('-').map(Number);
+      if (!y || !m || !d) return null;
+      return { y, m, d };
+    }
+
+    // 工具一：星座速查
+    const zxDate = document.getElementById('zx-date');
+    const zxBtn = document.getElementById('zx-btn');
+    const zxOut = document.getElementById('zx-result');
+    zxBtn.addEventListener('click', () => {
+      const p = parseDate(zxDate.value);
+      if (!p) { zxOut.hidden = false; zxOut.textContent = '请先选择出生日期。'; return; }
+      const s = getSign(p.m, p.d);
+      zxOut.hidden = false;
+      zxOut.innerHTML =
+        `<h3>${s.sym} ${s.name} <span class="badge">${s.en}</span></h3>` +
+        `<p><span class="badge">元素 ${s.el}</span><span class="badge">守护星 ${s.planet}</span></p>` +
+        `<p>日期区间：约 ${s.start[0]}月${s.start[1]}日 – ${s.end[0]}月${s.end[1]}日</p>` +
+        `<p>性格关键词：${s.traits}</p>`;
+    });
+
+    // 工具二：合盘
+    const hpA = document.getElementById('hp-a');
+    const hpB = document.getElementById('hp-b');
+    const hpBtn = document.getElementById('hp-btn');
+    const hpOut = document.getElementById('hp-result');
+    hpBtn.addEventListener('click', () => {
+      const a = parseDate(hpA.value), b = parseDate(hpB.value);
+      if (!a || !b) { hpOut.hidden = false; hpOut.textContent = '请选择两位的出生日期。'; return; }
+      const sa = getSign(a.m, a.d), sb = getSign(b.m, b.d);
+      const score = pairScore(sa.el, sb.el);
+      hpOut.hidden = false;
+      hpOut.innerHTML =
+        `<div class="sc-card"><div class="score-ring">${score}</div><div>配对指数<br><span style="font-size:13px;color:var(--muted)">满分 100</span></div></div>` +
+        `<p>${sa.sym} <b>${sa.name}</b>（${sa.el}）　×　${sb.sym} <b>${sb.name}</b>（${sb.el}）</p>` +
+        `<p>${pairText(score)}</p>` +
+        `<p style="font-size:13px;color:var(--muted)">注：指数为元素相生相克的简化娱乐测算，非专业占星，仅供会心一笑。</p>`;
+    });
+
+    // 工具三：生辰卡
+    const scDate = document.getElementById('sc-date');
+    const scBtn = document.getElementById('sc-btn');
+    const scOut = document.getElementById('sc-result');
+    scBtn.addEventListener('click', () => {
+      const p = parseDate(scDate.value);
+      if (!p) { scOut.hidden = false; scOut.textContent = '请选择出生日期。'; return; }
+      const s = getSign(p.m, p.d);
+      const animal = sx(p.y), emoji = sxEmoji(p.y), gz = gzYear(p.y);
+      scOut.hidden = false;
+      scOut.innerHTML =
+        `<div class="sc-card"><div class="sc-emoji">${emoji}</div><div class="sc-meta">` +
+        `<p><b>${p.y} 年</b> · ${animal}年 · ${gz}年</p>` +
+        `<p>太阳星座：${s.sym} ${s.name}（${s.el}）</p>` +
+        `<p style="color:var(--fg)">${SC_LINES[animal]}</p></div></div>` +
+        `<p style="font-size:13px;color:var(--muted)">注：年柱以公历年份近似（命理上以立春为界），仅供娱乐参考。</p>`;
+    });
+  </script>
+</BlogPost>

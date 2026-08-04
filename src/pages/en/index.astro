@@ -1,0 +1,110 @@
+---
+import SiteHeader from '../../components/SiteHeader.astro';
+const base = import.meta.env.BASE_URL;
+const seriesList = [
+  {
+    name: 'Zodiac Notes',
+    en: '星座手记',
+    desc: 'The 12 signs, four elements and ruling planets — beyond just your Sun sign.',
+    posts: [
+      { slug: 'zx1-twelve-signs', title: 'A Tour of the 12 Signs', desc: 'One map to read every sign’s element, ruler and traits.' },
+      { slug: 'zx2-four-elements', title: 'The Four Elements', desc: 'Why Fire burns, Water feels — elements shape how you meet the world.' },
+    ],
+  },
+  {
+    name: 'Bazi 101',
+    en: '八字入门',
+    desc: 'Heavenly Stems, Earthly Branches, charting and the Ten Gods — the grammar of Chinese astrology.',
+    posts: [
+      { slug: 'bz1-stems-branches', title: 'Stems & Branches', desc: 'From Jia-Zi to Gui-Hai: how the sexagenary cycle encodes time.' },
+      { slug: 'bz2-pillars-tens', title: 'Charting & Ten Gods', desc: 'Year/Pillar/Day/Hour pillars and a playful read of the Ten Gods.' },
+    ],
+  },
+  {
+    name: 'Synastry',
+    en: '合盘与缘分',
+    desc: 'How to read a synastry, and the elemental logic behind compatibility.',
+    posts: [
+      { slug: 'hp1-how-to-read', title: 'How to Read a Synastry', desc: 'Synastry isn’t fortune-telling — it’s reading how two energies meet.' },
+    ],
+  },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t !== 'light' && t !== 'dark') {
+            t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    <title>Divination Notes · Zodiac · Bazi · Synastry · Birth Chart</title>
+    <meta name="description" content="Divination Notes: zodiac, bazi, synastry and birth charts — a Ceshi-style divination blog." />
+  </head>
+  <body>
+    <SiteHeader lang="en" altLang="中文" altHref="/" />
+    <main>
+      <section class="hero">
+        <p class="kicker">✦ Zodiac · Bazi · Synastry · Birth Chart</p>
+        <h1>Divination Notes</h1>
+        <p class="hero-sub">Turning the stars and stems of your birth moment into stories you can smile at.<br />Entertainment first, culture second — we don’t make life decisions for you.</p>
+        <a class="hero-cta" href={`${base}en/tools`}>🔮 Open the Toolkit</a>
+      </section>
+
+      <section class="tools-banner">
+        <span>Three mini tools:</span>
+        <a href={`${base}en/tools`}>Zodiac Finder</a> · <a href={`${base}en/tools`}>Synastry</a> · <a href={`${base}en/tools`}>Birth Card</a>
+      </section>
+
+      {seriesList.map((s) => (
+        <section class="series-block">
+          <h2>{s.name} <span class="en">{s.en}</span></h2>
+          <p class="series-desc">{s.desc}</p>
+          <ul class="post-list">
+            {s.posts.map((p) => (
+              <li>
+                <a href={`${base}en/blog/${p.slug}`}>{p.title}</a>
+                <div class="date">{p.desc}</div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      <p class="foot-note">⚠️ All calculations here are for entertainment and cultural curiosity only — not life, financial, or health advice.</p>
+    </main>
+    <footer>© 2026 Divination Notes · Hosted on GitHub Pages</footer>
+
+    <style is:global>
+      .hero { text-align: center; padding: 56px 16px 28px; }
+      .kicker { color: var(--accent); letter-spacing: 2px; font-size: 13px; margin: 0 0 8px; }
+      .hero h1 { font-size: 44px; margin: 0 0 12px; letter-spacing: 2px; }
+      .hero-sub { color: var(--muted); font-size: 16px; line-height: 1.9; margin: 0 auto 22px; max-width: 560px; }
+      .hero-cta { display: inline-block; padding: 12px 28px; border-radius: 999px; background: var(--accent); color: #fff; text-decoration: none; font-size: 16px; transition: transform .15s, opacity .15s; }
+      .hero-cta:hover { transform: translateY(-2px); opacity: .92; }
+      .tools-banner { text-align: center; color: var(--muted); font-size: 14px; margin: 12px 0 8px; }
+      .tools-banner a { color: var(--accent); text-decoration: none; }
+      .series-block { margin-top: 36px; }
+      .series-block h2 { font-size: 22px; border-left: 4px solid var(--accent); padding-left: 10px; }
+      .series-block h2 .en { font-size: 14px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+      .series-desc { color: var(--muted); font-size: 14px; margin: 6px 0 14px; }
+      .post-list { list-style: none; padding: 0; }
+      .post-list li { padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; transition: border-color .15s; }
+      .post-list li:hover { border-color: var(--accent); }
+      .post-list a { font-weight: 600; color: var(--fg); text-decoration: none; font-size: 17px; }
+      .post-list .date { color: var(--muted); font-size: 13px; margin-top: 4px; }
+      .foot-note { color: var(--muted); font-size: 13px; margin-top: 36px; text-align: center; }
+      footer { text-align: center; color: var(--muted); font-size: 13px; padding: 32px 16px; border-top: 1px solid var(--border); margin-top: 24px; }
+    </style>
+  </body>
+</html>
