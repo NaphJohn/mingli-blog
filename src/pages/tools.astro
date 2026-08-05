@@ -1,9 +1,10 @@
 ---
 import BlogPost from '../layouts/BlogPost.astro';
+const base = import.meta.env.BASE_URL;
 ---
 
-<BlogPost title="命理工具箱" description="出生日期查星座 · 两人缘分合盘 · 生辰卡" lang="zh" altLang="English" altHref="/en/tools">
-  <p class="lead">三件纯前端小工具，即开即用：查你的太阳星座、算两人的星座缘分、生成你的生辰卡。</p>
+<BlogPost title="命理工具箱" description="出生日期查星座 · 两人缘分合盘 · 生辰历 · 流盘" lang="zh" altLang="English" altHref="/en/tools">
+  <p class="lead">四件纯前端小工具，即开即用：查太阳星座、算两人星座缘分、排出四柱生辰历、生成动态流盘。</p>
   <p class="disclaimer">⚠️ 本页内容仅供娱乐与文化了解，不构成任何人生、投资或健康建议。</p>
 
   <section class="tool-card">
@@ -28,13 +29,22 @@ import BlogPost from '../layouts/BlogPost.astro';
   </section>
 
   <section class="tool-card">
-    <h2>🌙 生辰卡</h2>
-    <p>输入出生年月日，生成你的生肖、干支年柱与生辰卡。</p>
+    <h2>🌙 生辰历</h2>
+    <p>输入出生年月日时，排出你的四柱（年柱、月柱、日柱、时柱）与出生节气。</p>
     <div class="tool-form">
       <label>出生日期 <input type="date" id="sc-date" /></label>
-      <button id="sc-btn" class="tool-btn" type="button">生成</button>
+      <label>出生时间 <input type="time" id="sc-time" value="12:00" /></label>
+      <button id="sc-btn" class="tool-btn" type="button">排盘</button>
     </div>
     <div id="sc-result" class="tool-result" hidden></div>
+  </section>
+
+  <section class="tool-card">
+    <h2>🌊 流盘</h2>
+    <p>输入生辰，生成大运、流年、流月、流日、流时的动态命盘矩阵，参考测测式布局。</p>
+    <div class="tool-form">
+      <a class="tool-btn" href={`${base}liupan`} id="lp-link">打开流盘</a>
+    </div>
   </section>
 
   <style>
@@ -54,9 +64,15 @@ import BlogPost from '../layouts/BlogPost.astro';
     .sc-card { display: flex; gap: 16px; align-items: center; }
     .sc-emoji { font-size: 56px; }
     .sc-meta b { color: var(--accent); }
+    .pillar-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 15px; }
+    .pillar-table th, .pillar-table td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+    .pillar-table th { background: var(--code-bg); color: var(--muted); font-size: 13px; }
+    .pillar-table td { font-size: 20px; font-weight: 700; color: var(--accent); }
   </style>
 
-  <script>
+  <script type="module">
+    import { Solar, Lunar } from 'lunar-javascript';
+
     const SIGNS = [
       { name: '白羊座', en: 'Aries', sym: '♈', start: [3, 21], end: [4, 19], el: '火', planet: '火星', traits: '热情、冲动、行动派' },
       { name: '金牛座', en: 'Taurus', sym: '♉', start: [4, 20], end: [5, 20], el: '土', planet: '金星', traits: '稳重、务实、爱美' },
@@ -101,11 +117,8 @@ import BlogPost from '../layouts/BlogPost.astro';
 
     const ANIMALS = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
     const AEMOJI = ['🐭', '🐂', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐵', '🐔', '🐶', '🐷'];
-    const GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    const ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
     function sx(y) { return ANIMALS[(((y - 4) % 12) + 12) % 12]; }
     function sxEmoji(y) { return AEMOJI[(((y - 4) % 12) + 12) % 12]; }
-    function gzYear(y) { return GAN[(((y - 4) % 10) + 10) % 10] + ZHI[(((y - 4) % 12) + 12) % 12]; }
     const SC_LINES = {
       '鼠': '机敏灵活，善抓机会，宜广结善缘。',
       '牛': '勤恳踏实，厚积薄发，贵在坚持。',
@@ -162,22 +175,41 @@ import BlogPost from '../layouts/BlogPost.astro';
         `<p style="font-size:13px;color:var(--muted)">注：指数为元素相生相克的简化娱乐测算，非专业占星，仅供会心一笑。</p>`;
     });
 
-    // 工具三：生辰卡
+    // 工具三：生辰历（四柱 + 节气）
     const scDate = document.getElementById('sc-date');
+    const scTime = document.getElementById('sc-time');
     const scBtn = document.getElementById('sc-btn');
     const scOut = document.getElementById('sc-result');
     scBtn.addEventListener('click', () => {
       const p = parseDate(scDate.value);
       if (!p) { scOut.hidden = false; scOut.textContent = '请选择出生日期。'; return; }
+      const t = scTime.value || '12:00';
+      const [hh, mm] = t.split(':').map(Number);
+      const solar = Solar.fromYmdHms(p.y, p.m, p.d, hh, mm, 0);
+      const lunar = Lunar.fromSolar(solar);
+      const ec = lunar.getEightChar();
+      const yearGZ = ec.getYear();
+      const monthGZ = ec.getMonth();
+      const dayGZ = ec.getDay();
+      const timeGZ = ec.getTime();
+      const animal = sx(p.y);
+      const emoji = sxEmoji(p.y);
       const s = getSign(p.m, p.d);
-      const animal = sx(p.y), emoji = sxEmoji(p.y), gz = gzYear(p.y);
+      const prevTerm = lunar.getPrevJieQi();
+      const nextTerm = lunar.getNextJieQi();
+      const termToday = lunar.getJieQi();
+      const termText = termToday
+        ? `出生节气：${termToday}`
+        : `出生节气：距 ${prevTerm.getName()} ${lunar.getSolar().subtract(prevTerm.getSolar())} 天 · 距 ${nextTerm.getName()} ${nextTerm.getSolar().subtract(lunar.getSolar())} 天`;
       scOut.hidden = false;
       scOut.innerHTML =
         `<div class="sc-card"><div class="sc-emoji">${emoji}</div><div class="sc-meta">` +
-        `<p><b>${p.y} 年</b> · ${animal}年 · ${gz}年</p>` +
-        `<p>太阳星座：${s.sym} ${s.name}（${s.el}）</p>` +
+        `<p><b>${p.y} 年 ${p.m} 月 ${p.d} 日 ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</b></p>` +
+        `<p>${animal}年 · 太阳星座 ${s.sym} ${s.name}（${s.el}）</p>` +
         `<p style="color:var(--fg)">${SC_LINES[animal]}</p></div></div>` +
-        `<p style="font-size:13px;color:var(--muted)">注：年柱以公历年份近似（命理上以立春为界），仅供娱乐参考。</p>`;
+        `<table class="pillar-table"><thead><tr><th>年柱</th><th>月柱</th><th>日柱</th><th>时柱</th></tr></thead>` +
+        `<tbody><tr><td>${yearGZ}</td><td>${monthGZ}</td><td>${dayGZ}</td><td>${timeGZ}</td></tr></tbody></table>` +
+        `<p style="font-size:13px;color:var(--muted)">${termText}。注：排盘基于 lunar-javascript 节气与干支算法，仅供文化娱乐参考。</p>`;
     });
   </script>
 </BlogPost>

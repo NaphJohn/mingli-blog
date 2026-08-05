@@ -1,0 +1,247 @@
+---
+import BlogPost from '../../layouts/BlogPost.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<BlogPost title="Time-Progression Chart" description="Enter your birth details to generate a dynamic chart of Da Yun, Liu Nian, Liu Yue, Liu Ri, and Liu Shi." lang="en" altLang="中文" altHref="/liupan">
+  <p class="lead">Enter your birth date, time, and gender to cast the four pillars plus Da Yun, Liu Nian, Liu Yue, Liu Ri, and Liu Shi.</p>
+  <p class="disclaimer">⚠️ For entertainment and cultural curiosity only — not life, financial, or health advice.</p>
+
+  <section class="tool-card">
+    <h2>📝 Birth Details</h2>
+    <div class="tool-form">
+      <label>Birth date <input type="date" id="lp-date" /></label>
+      <label>Birth time <input type="time" id="lp-time" value="12:00" /></label>
+      <label>Gender
+        <select id="lp-gender">
+          <option value="1">Male</option>
+          <option value="2">Female</option>
+        </select>
+      </label>
+      <button id="lp-btn" class="tool-btn" type="button">Cast chart</button>
+    </div>
+  </section>
+
+  <div id="lp-result" hidden>
+    <section class="tool-card">
+      <h2>🧭 Four Pillars & Current Cycles</h2>
+      <div id="lp-summary"></div>
+      <div class="table-wrap">
+        <table class="lp-table" id="lp-matrix">
+          <thead><tr><th></th><th>Year</th><th>Month</th><th>Day</th><th>Hour</th><th>Da Yun</th><th>Liu Nian</th><th>Liu Yue</th><th>Liu Ri</th></tr></thead>
+          <tbody>
+            <tr><th>Stem</th><td id="lp-y-gan"></td><td id="lp-m-gan"></td><td id="lp-d-gan"></td><td id="lp-h-gan"></td><td id="lp-dy-gan"></td><td id="lp-ly-gan"></td><td id="lp-lm-gan"></td><td id="lp-ld-gan"></td></tr>
+            <tr><th>Branch</th><td id="lp-y-zhi"></td><td id="lp-m-zhi"></td><td id="lp-d-zhi"></td><td id="lp-h-zhi"></td><td id="lp-dy-zhi"></td><td id="lp-ly-zhi"></td><td id="lp-lm-zhi"></td><td id="lp-ld-zhi"></td></tr>
+            <tr><th>Hidden</th><td id="lp-y-cang"></td><td id="lp-m-cang"></td><td id="lp-d-cang"></td><td id="lp-h-cang"></td><td id="lp-dy-cang"></td><td id="lp-ly-cang"></td><td id="lp-lm-cang"></td><td id="lp-ld-cang"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tool-card">
+      <h2>🌊 Da Yun (Great Luck)</h2>
+      <div class="table-wrap"><table class="lp-table" id="lp-dayun"></table></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>📅 Liu Nian (Year)</h2>
+      <div class="table-wrap"><table class="lp-table" id="lp-liunian"></table></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>🌙 Liu Yue (Month)</h2>
+      <div class="table-wrap"><table class="lp-table" id="lp-liuyue"></table></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>☀️ Liu Ri (Day)</h2>
+      <div class="table-wrap"><table class="lp-table" id="lp-liuri"></table></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>⏰ Liu Shi (Hour)</h2>
+      <div class="table-wrap"><table class="lp-table" id="lp-liushi"></table></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>🔁 Stem-Branch Interactions</h2>
+      <div id="lp-relations"></div>
+    </section>
+  </div>
+
+  <p style="margin-top: 24px;"><a href={`${base}en/tools`}>← Back to toolkit</a></p>
+
+  <style>
+    .lead { color: var(--muted); font-size: 16px; }
+    .disclaimer { background: var(--code-bg); border: 1px dashed var(--border); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--muted); }
+    .tool-card { border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin: 20px 0; background: var(--bg); }
+    .tool-card h2 { margin-top: 0; border-left: 4px solid var(--accent); padding-left: 10px; }
+    .tool-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 10px; }
+    .tool-form label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
+    .tool-form input, .tool-form select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
+    .tool-btn { padding: 9px 18px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform .15s, opacity .15s; text-decoration: none; display: inline-block; }
+    .tool-btn:hover { transform: translateY(-1px); opacity: .92; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .lp-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+    .lp-table th, .lp-table td { border: 1px solid var(--border); padding: 8px 6px; text-align: center; }
+    .lp-table thead th { background: var(--code-bg); color: var(--muted); font-size: 13px; }
+    .lp-table tbody th { background: var(--code-bg); color: var(--muted); font-size: 13px; }
+    .lp-table td { color: var(--fg); }
+    .gz { font-size: 18px; font-weight: 700; color: var(--accent); }
+    .cang { font-size: 12px; color: var(--muted); }
+    .current { background: rgba(124,92,255,0.10); }
+    .relation-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; font-size: 14px; }
+    .relation-pill { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; background: var(--code-bg); }
+  </style>
+
+  <script type="module">
+    import { Solar, Lunar } from 'lunar-javascript';
+
+    const ZHI_CANG = {
+      '子': '癸', '丑': '己癸辛', '寅': '甲丙戊', '卯': '乙', '辰': '戊乙癸', '巳': '丙戊庚',
+      '午': '丁己', '未': '己丁乙', '申': '庚壬戊', '酉': '辛', '戌': '戊辛丁', '亥': '壬甲'
+    };
+    const ZHI_TIME = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+    const TIME_LABEL = ['23-01', '01-03', '03-05', '05-07', '07-09', '09-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23'];
+
+    function splitGZ(gz) { return gz ? { gan: gz[0], zhi: gz[1], cang: ZHI_CANG[gz[1]] || '' } : { gan: '-', zhi: '-', cang: '-' }; }
+    function formatDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+    function compute(birthSolar, gender) {
+      const lunar = Lunar.fromSolar(birthSolar);
+      const ec = lunar.getEightChar();
+      const yun = ec.getYun(gender);
+      const dayun = yun.getDaYun();
+      const today = new Date();
+      const todayYear = today.getFullYear();
+
+      let currentDaYun = dayun.slice(1).find(d => {
+        const start = d.getStartYear();
+        const idx = dayun.indexOf(d);
+        const end = idx < dayun.length - 1 ? dayun[idx + 1].getStartYear() : start + 10;
+        return todayYear >= start && todayYear < end;
+      }) || dayun[dayun.length - 1];
+
+      const liunianList = currentDaYun.getLiuNian();
+      const currentLiuNian = liunianList.find(l => l.getYear() === todayYear) || liunianList[0];
+      const liuyueList = currentLiuNian.getLiuYue();
+      const currentMonth = today.getMonth() + 1;
+      const currentLiuYue = liuyueList.find(l => {
+        const m = l.getMonthInChinese();
+        const map = {'正':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'冬':11,'腊':12};
+        return map[m] === currentMonth;
+      }) || liuyueList[0];
+
+      const todaySolar = Solar.fromYmd(todayYear, today.getMonth()+1, today.getDate());
+      const todayLunar = Lunar.fromSolar(todaySolar);
+      const todayDayGZ = todayLunar.getEightChar().getDay();
+      const todayHourGZ = todayLunar.getEightChar().getTime();
+
+      return {
+        year: ec.getYear(), month: ec.getMonth(), day: ec.getDay(), time: ec.getTime(),
+        currentDaYun: currentDaYun.getGanZhi(),
+        currentLiuNian: currentLiuNian.getGanZhi(),
+        currentLiuYue: currentLiuYue.getGanZhi(),
+        currentLiuRi: todayDayGZ,
+        currentLiuShi: todayHourGZ,
+        dayun: dayun,
+        liunian: liunianList,
+        liuyue: liuyueList,
+      };
+    }
+
+    function render() {
+      const dateVal = document.getElementById('lp-date').value;
+      const timeVal = document.getElementById('lp-time').value || '12:00';
+      const gender = +document.getElementById('lp-gender').value;
+      if (!dateVal) { alert('Please pick a birth date'); return; }
+      const [y, m, d] = dateVal.split('-').map(Number);
+      const [hh, mm] = timeVal.split(':').map(Number);
+      const birthSolar = Solar.fromYmdHms(y, m, d, hh, mm, 0);
+      const data = compute(birthSolar, gender);
+      document.getElementById('lp-result').hidden = false;
+
+      const lunar = Lunar.fromSolar(birthSolar);
+      const prevTerm = lunar.getPrevJieQi();
+      const nextTerm = lunar.getNextJieQi();
+      const termToday = lunar.getJieQi();
+      const termText = termToday
+        ? `Birth solar term: ${termToday}`
+        : `Birth solar term: ${birthSolar.subtract(prevTerm.getSolar())} days after ${prevTerm.getName()}, ${nextTerm.getSolar().subtract(birthSolar)} days before ${nextTerm.getName()}`;
+      document.getElementById('lp-summary').innerHTML =
+        `<p><b>${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')} ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</b> · ${termText}</p>`;
+
+      const cols = [
+        ['lp-y', data.year], ['lp-m', data.month], ['lp-d', data.day], ['lp-h', data.time],
+        ['lp-dy', data.currentDaYun], ['lp-ly', data.currentLiuNian],
+        ['lp-lm', data.currentLiuYue], ['lp-ld', data.currentLiuRi]
+      ];
+      cols.forEach(([prefix, gz]) => {
+        const { gan, zhi, cang } = splitGZ(gz);
+        document.getElementById(prefix + '-gan').innerHTML = `<span class="gz">${gan}</span>`;
+        document.getElementById(prefix + '-zhi').innerHTML = `<span class="gz">${zhi}</span>`;
+        document.getElementById(prefix + '-cang').innerHTML = `<span class="cang">${cang}</span>`;
+      });
+
+      const dyRows = data.dayun.slice(1).map(d => {
+        const gz = d.getGanZhi();
+        const start = d.getStartYear();
+        const age = d.getStartAge();
+        const end = start + 9;
+        const isCur = gz === data.currentDaYun;
+        return `<tr class="${isCur ? 'current' : ''}"><td>${start}–${end}</td><td>${age}–${age+9}</td><td><span class="gz">${gz}</span></td></tr>`;
+      }).join('');
+      document.getElementById('lp-dayun').innerHTML =
+        `<thead><tr><th>Years</th><th>Ages</th><th>Pillar</th></tr></thead><tbody>${dyRows}</tbody>`;
+
+      const lnRows = data.liunian.map(l => {
+        const gz = l.getGanZhi();
+        const isCur = gz === data.currentLiuNian;
+        return `<tr class="${isCur ? 'current' : ''}"><td>${l.getYear()}</td><td>${l.getAge()}</td><td><span class="gz">${gz}</span></td></tr>`;
+      }).join('');
+      document.getElementById('lp-liunian').innerHTML =
+        `<thead><tr><th>Year</th><th>Age</th><th>Pillar</th></tr></thead><tbody>${lnRows}</tbody>`;
+
+      const lmRows = data.liuyue.map(l => {
+        const gz = l.getGanZhi();
+        const isCur = gz === data.currentLiuYue;
+        return `<tr class="${isCur ? 'current' : ''}"><td>${l.getMonthInChinese()}</td><td><span class="gz">${gz}</span></td></tr>`;
+      }).join('');
+      document.getElementById('lp-liuyue').innerHTML =
+        `<thead><tr><th>Month</th><th>Pillar</th></tr></thead><tbody>${lmRows}</tbody>`;
+
+      const today = new Date();
+      let ldRows = '';
+      for (let i = 0; i < 30; i++) {
+        const dt = new Date(today); dt.setDate(today.getDate() + i);
+        const s = Solar.fromYmd(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+        const l = Lunar.fromSolar(s);
+        const gz = l.getEightChar().getDay();
+        const isCur = i === 0;
+        ldRows += `<tr class="${isCur ? 'current' : ''}"><td>${formatDate(dt)}</td><td><span class="gz">${gz}</span></td></tr>`;
+      }
+      document.getElementById('lp-liuri').innerHTML =
+        `<thead><tr><th>Date</th><th>Pillar</th></tr></thead><tbody>${ldRows}</tbody>`;
+
+      let lsRows = '';
+      for (let i = 0; i < 12; i++) {
+        const s = Solar.fromYmdHms(today.getFullYear(), today.getMonth()+1, today.getDate(), i*2, 0, 0);
+        const l = Lunar.fromSolar(s);
+        const gz = l.getEightChar().getTime();
+        lsRows += `<tr><td>${TIME_LABEL[i]}</td><td>${ZHI_TIME[i]}</td><td><span class="gz">${gz}</span></td></tr>`;
+      }
+      document.getElementById('lp-liushi').innerHTML =
+        `<thead><tr><th>Window</th><th>Branch</th><th>Pillar</th></tr></thead><tbody>${lsRows}</tbody>`;
+
+      const natalGan = data.day[0];
+      const natalZhi = data.day[1];
+      const dyZhi = data.currentDaYun[1];
+      const lyZhi = data.currentLiuNian[1];
+      document.getElementById('lp-relations').innerHTML =
+        `<div class="relation-row"><span class="relation-pill">Day stem: ${natalGan}</span><span class="relation-pill">Day branch: ${natalZhi}</span><span class="relation-pill">Da Yun branch: ${dyZhi}</span><span class="relation-pill">Liu Nian branch: ${lyZhi}</span></div>` +
+        `<p style="font-size:13px;color:var(--muted)">Note: hidden stems and detailed clash/combine interactions can be layered on top; this is a simplified view.</p>`;
+    }
+
+    document.getElementById('lp-btn').addEventListener('click', render);
+  </script>
+</BlogPost>

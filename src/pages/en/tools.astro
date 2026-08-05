@@ -1,9 +1,10 @@
 ---
 import BlogPost from '../../layouts/BlogPost.astro';
+const base = import.meta.env.BASE_URL;
 ---
 
-<BlogPost title="Divination Toolkit" description="Birth date → zodiac · couple synastry · birth card" lang="en" altLang="中文" altHref="/tools">
-  <p class="lead">Three client-side mini tools, ready to use: find your Sun sign, score a couple's compatibility, and generate your birth card.</p>
+<BlogPost title="Divination Toolkit" description="Birth date → zodiac · couple synastry · birth calendar · time-progression chart" lang="en" altLang="中文" altHref="/tools">
+  <p class="lead">Four client-side mini tools, ready to use: find your Sun sign, score a couple's compatibility, cast the four birth pillars, and generate a dynamic time-progression chart.</p>
   <p class="disclaimer">⚠️ For entertainment and cultural curiosity only — not life, financial, or health advice.</p>
 
   <section class="tool-card">
@@ -28,13 +29,22 @@ import BlogPost from '../../layouts/BlogPost.astro';
   </section>
 
   <section class="tool-card">
-    <h2>🌙 Birth Card</h2>
-    <p>Enter your birth date to generate your Chinese zodiac and sexagenary year.</p>
+    <h2>🌙 Birth Calendar</h2>
+    <p>Enter your birth date and time to cast the four pillars (year, month, day, hour) and birth solar term.</p>
     <div class="tool-form">
       <label>Birth date <input type="date" id="sc-date" /></label>
-      <button id="sc-btn" class="tool-btn" type="button">Generate</button>
+      <label>Birth time <input type="time" id="sc-time" value="12:00" /></label>
+      <button id="sc-btn" class="tool-btn" type="button">Cast</button>
     </div>
     <div id="sc-result" class="tool-result" hidden></div>
+  </section>
+
+  <section class="tool-card">
+    <h2>🌊 Time-Progression Chart</h2>
+    <p>Enter your birth details to generate a dynamic chart of Da Yun, Liu Nian, Liu Yue, Liu Ri, and Liu Shi.</p>
+    <div class="tool-form">
+      <a class="tool-btn" href={`${base}en/liupan`} id="lp-link">Open chart</a>
+    </div>
   </section>
 
   <style>
@@ -54,9 +64,15 @@ import BlogPost from '../../layouts/BlogPost.astro';
     .sc-card { display: flex; gap: 16px; align-items: center; }
     .sc-emoji { font-size: 56px; }
     .sc-meta b { color: var(--accent); }
+    .pillar-table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 15px; }
+    .pillar-table th, .pillar-table td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+    .pillar-table th { background: var(--code-bg); color: var(--muted); font-size: 13px; }
+    .pillar-table td { font-size: 20px; font-weight: 700; color: var(--accent); }
   </style>
 
-  <script>
+  <script type="module">
+    import { Solar, Lunar } from 'lunar-javascript';
+
     const SIGNS = [
       { name: '白羊座', en: 'Aries', sym: '♈', start: [3, 21], end: [4, 19], el: '火', elEn: 'Fire', planet: 'Mars', traits: 'passionate, impulsive, action-first' },
       { name: '金牛座', en: 'Taurus', sym: '♉', start: [4, 20], end: [5, 20], el: '土', elEn: 'Earth', planet: 'Venus', traits: 'steady, pragmatic, aesthetic' },
@@ -99,11 +115,8 @@ import BlogPost from '../../layouts/BlogPost.astro';
 
     const ANIMALS = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
     const AEMOJI = ['🐭', '🐂', '🐯', '🐰', '🐲', '🐍', '🐴', '🐑', '🐵', '🐔', '🐶', '🐷'];
-    const GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-    const ZHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
     function sx(y) { return ANIMALS[(((y - 4) % 12) + 12) % 12]; }
     function sxEmoji(y) { return AEMOJI[(((y - 4) % 12) + 12) % 12]; }
-    function gzYear(y) { return GAN[(((y - 4) % 10) + 10) % 10] + ZHI[(((y - 4) % 12) + 12) % 12]; }
     const SC_LINES = {
       '鼠': 'Sharp and flexible, great at seizing chances — network widely.',
       '牛': 'Diligent and steady, slow buildup pays off — persistence wins.',
@@ -159,20 +172,35 @@ import BlogPost from '../../layouts/BlogPost.astro';
     });
 
     const scDate = document.getElementById('sc-date');
+    const scTime = document.getElementById('sc-time');
     const scBtn = document.getElementById('sc-btn');
     const scOut = document.getElementById('sc-result');
     scBtn.addEventListener('click', () => {
       const p = parseDate(scDate.value);
       if (!p) { scOut.hidden = false; scOut.textContent = 'Please pick a birth date.'; return; }
+      const t = scTime.value || '12:00';
+      const [hh, mm] = t.split(':').map(Number);
+      const solar = Solar.fromYmdHms(p.y, p.m, p.d, hh, mm, 0);
+      const lunar = Lunar.fromSolar(solar);
+      const ec = lunar.getEightChar();
       const s = getSign(p.m, p.d);
-      const animal = sx(p.y), emoji = sxEmoji(p.y), gz = gzYear(p.y);
+      const animal = sx(p.y);
+      const emoji = sxEmoji(p.y);
+      const prevTerm = lunar.getPrevJieQi();
+      const nextTerm = lunar.getNextJieQi();
+      const termToday = lunar.getJieQi();
+      const termText = termToday
+        ? `Birth solar term: ${termToday}`
+        : `Birth solar term: ${solar.subtract(prevTerm.getSolar())} days after ${prevTerm.getName()} · ${nextTerm.getSolar().subtract(solar)} days before ${nextTerm.getName()}`;
       scOut.hidden = false;
       scOut.innerHTML =
         `<div class="sc-card"><div class="sc-emoji">${emoji}</div><div class="sc-meta">` +
-        `<p><b>${p.y}</b> · ${animal} year · ${gz} year</p>` +
-        `<p>Sun sign: ${s.sym} ${s.en} (${s.elEn})</p>` +
+        `<p><b>${p.y}-${String(p.m).padStart(2,'0')}-${String(p.d).padStart(2,'0')} ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</b></p>` +
+        `<p>${animal} year · Sun sign ${s.sym} ${s.en} (${s.elEn})</p>` +
         `<p style="color:var(--fg)">${SC_LINES[animal]}</p></div></div>` +
-        `<p style="font-size:13px;color:var(--muted)">Note: the year pillar uses the Gregorian year as an approximation (traditionally the boundary is Start-of-Spring). For fun only.</p>`;
+        `<table class="pillar-table"><thead><tr><th>Year</th><th>Month</th><th>Day</th><th>Hour</th></tr></thead>` +
+        `<tbody><tr><td>${ec.getYear()}</td><td>${ec.getMonth()}</td><td>${ec.getDay()}</td><td>${ec.getTime()}</td></tr></tbody></table>` +
+        `<p style="font-size:13px;color:var(--muted)">${termText}. Based on lunar-javascript solar-term and sexagenary-cycle algorithms. For entertainment only.</p>`;
     });
   </script>
 </BlogPost>
