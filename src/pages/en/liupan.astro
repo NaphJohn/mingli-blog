@@ -61,6 +61,10 @@ const base = import.meta.env.BASE_URL;
             <tr><th>Stage</th><td id="lp-y-dishi"></td><td id="lp-m-dishi"></td><td id="lp-d-dishi"></td><td id="lp-h-dishi"></td><td id="lp-dy-dishi"></td><td id="lp-ly-dishi"></td><td id="lp-lm-dishi"></td><td id="lp-ld-dishi"></td></tr>
             <tr><th>Seat</th><td id="lp-y-zizuo"></td><td id="lp-m-zizuo"></td><td id="lp-d-zizuo"></td><td id="lp-h-zizuo"></td><td id="lp-dy-zizuo"></td><td id="lp-ly-zizuo"></td><td id="lp-lm-zizuo"></td><td id="lp-ld-zizuo"></td></tr>
             <tr><th>Shen Sha</th><td id="lp-y-shensha" class="shensha"></td><td id="lp-m-shensha" class="shensha"></td><td id="lp-d-shensha" class="shensha"></td><td id="lp-h-shensha" class="shensha"></td><td id="lp-dy-shensha" class="shensha"></td><td id="lp-ly-shensha" class="shensha"></td><td id="lp-lm-shensha" class="shensha"></td><td id="lp-ld-shensha" class="shensha"></td></tr>
+            <tr><th>Na Yin</th><td id="lp-y-nayin" class="nayin"></td><td id="lp-m-nayin" class="nayin"></td><td id="lp-d-nayin" class="nayin"></td><td id="lp-h-nayin" class="nayin"></td><td id="lp-dy-nayin" class="nayin"></td><td id="lp-ly-nayin" class="nayin"></td><td id="lp-lm-nayin" class="nayin"></td><td id="lp-ld-nayin" class="nayin"></td></tr>
+            <tr><th>Tai Yuan</th><td colspan="8" id="lp-taiyuan" class="sanyuan"></td></tr>
+            <tr><th>Ming Gong</th><td colspan="8" id="lp-minggong" class="sanyuan"></td></tr>
+            <tr><th>Shen Gong</th><td colspan="8" id="lp-shengong" class="sanyuan"></td></tr>
           </tbody>
         </table>
       </div>
@@ -127,6 +131,9 @@ const base = import.meta.env.BASE_URL;
     .zhu { font-size: 13px; font-weight: 600; }
     .dishi { font-size: 12px; color: var(--muted); }
     .shensha { font-size: 11px; color: var(--muted); line-height: 1.4; max-width: 90px; }
+    .nayin { font-size: 11px; color: var(--muted); line-height: 1.3; }
+    .sanyuan { text-align: left; font-size: 13px; color: var(--fg); padding-left: 14px; }
+    .sanyuan .gz { font-size: 16px; margin: 0 6px; }
     .current { background: rgba(124,92,255,0.10); }
     .relation-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; font-size: 14px; }
     .relation-pill { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; background: var(--code-bg); }
@@ -195,6 +202,58 @@ const base = import.meta.env.BASE_URL;
       if (huagai[dayZhi] === zhi) list.push('华盖');
       if (xunKong && xunKong.includes(zhi)) list.push('空亡');
       return list;
+    }
+
+    const NAYIN = {
+      '甲子':'海中金','乙丑':'海中金','丙寅':'炉中火','丁卯':'炉中火','戊辰':'大林木','己巳':'大林木',
+      '庚午':'路旁土','辛未':'路旁土','壬申':'剑锋金','癸酉':'剑锋金','甲戌':'山头火','乙亥':'山头火',
+      '丙子':'涧下水','丁丑':'涧下水','戊寅':'城头土','己卯':'城头土','庚辰':'白蜡金','辛巳':'白蜡金',
+      '壬午':'杨柳木','癸未':'杨柳木','甲申':'泉中水','乙酉':'泉中水','丙戌':'屋上土','丁亥':'屋上土',
+      '戊子':'霹雳火','己丑':'霹雳火','庚寅':'松柏木','辛卯':'松柏木','壬辰':'长流水','癸巳':'长流水',
+      '甲午':'沙中金','乙未':'沙中金','丙申':'山下火','丁酉':'山下火','戊戌':'平地木','己亥':'平地木',
+      '庚子':'壁上土','辛丑':'壁上土','壬寅':'金箔金','癸卯':'金箔金','甲辰':'覆灯火','乙巳':'覆灯火',
+      '丙午':'天河水','丁未':'天河水','戊申':'大驿土','己酉':'大驿土','庚戌':'钗钏金','辛亥':'钗钏金',
+      '壬子':'桑柘木','癸丑':'桑柘木','甲寅':'大溪水','乙卯':'大溪水','丙辰':'沙中土','丁巳':'沙中土',
+      '戊午':'天上火','己未':'天上火','庚申':'石榴木','辛酉':'石榴木','壬戌':'大海水','癸亥':'大海水'
+    };
+    function nayinOf(gz) { return NAYIN[gz] || ''; }
+
+    function sortPair(a, b) { return a < b ? a + b : b + a; }
+    function pairMap(pairs) { const m = {}; pairs.forEach(([a, b, v]) => { m[sortPair(a, b)] = v; }); return m; }
+    function trioMap(trios) { const m = {}; trios.forEach(([a, b, c, v]) => { m[[a, b, c].sort().join('')] = v; }); return m; }
+    const LIU_HE = pairMap([['子','丑','土'],['寅','亥','木'],['卯','戌','火'],['辰','酉','金'],['巳','申','水'],['午','未','火']]);
+    const LIU_CHONG = pairMap([['子','午',''],['丑','未',''],['寅','申',''],['卯','酉',''],['辰','戌',''],['巳','亥','']]);
+    const LIU_HAI = pairMap([['子','未',''],['丑','午',''],['寅','巳',''],['卯','辰',''],['申','亥',''],['酉','戌','']]);
+    const LIU_PO = pairMap([['子','酉',''],['丑','辰',''],['寅','亥',''],['卯','午',''],['巳','申',''],['未','戌','']]);
+    const LIU_XING = pairMap([['子','卯','无礼之刑']]);
+    const SAN_HE = trioMap([['申','子','辰','水'],['亥','卯','未','木'],['寅','午','戌','火'],['巳','酉','丑','金']]);
+    const SAN_XING = trioMap([['寅','巳','申','无恩之刑'],['丑','戌','未','恃势之刑']]);
+
+    function computeRelationsEN(list) {
+      const pills = [];
+      for (let i = 0; i < list.length; i++) {
+        for (let j = i + 1; j < list.length; j++) {
+          const a = list[i], b = list[j];
+          const key = sortPair(a.z, b.z);
+          if (LIU_HE[key] !== undefined) pills.push(`${a.l}·${b.l} ${a.z}${b.z} combine(${LIU_HE[key]})`);
+          if (LIU_CHONG[key] !== undefined) pills.push(`${a.l}·${b.l} ${a.z}${b.z} clash`);
+          if (LIU_HAI[key] !== undefined) pills.push(`${a.l}·${b.l} ${a.z}${b.z} harm`);
+          if (LIU_PO[key] !== undefined) pills.push(`${a.l}·${b.l} ${a.z}${b.z} break`);
+          if (LIU_XING[key] !== undefined) pills.push(`${a.l}·${b.l} ${a.z}${b.z} ${LIU_XING[key]}`);
+        }
+      }
+      for (let i = 0; i < list.length; i++) {
+        for (let j = i + 1; j < list.length; j++) {
+          for (let k = j + 1; k < list.length; k++) {
+            const arr = [list[i].z, list[j].z, list[k].z].sort().join('');
+            if (SAN_HE[arr] !== undefined) pills.push(`${list[i].l}${list[j].l}${list[k].l} ${arr} 3-combo(${SAN_HE[arr]})`);
+            if (SAN_XING[arr] !== undefined) pills.push(`${list[i].l}${list[j].l}${list[k].l} ${arr} ${SAN_XING[arr]}`);
+          }
+        }
+      }
+      if (!pills.length) return '<p style="font-size:13px;color:var(--muted)">No obvious 6-combine / 6-clash / 6-harm / 3-combo / 3-punish interactions among the four pillars and the current Da Yun / Liu Nian branches.</p>';
+      return '<div class="relation-row">' + pills.map(p => `<span class="relation-pill">${p}</span>`).join('') + '</div>' +
+        '<p style="font-size:13px;color:var(--muted)">Note: 6-combine / 3-combo are "harmonizing"; 6-clash / 6-harm / 6-break / 3-punish are "conflicting". Listed for the four natal pillars vs the current Da Yun and Liu Nian branches, for entertainment only.</p>';
     }
 
     function fillDayOptions(ySel, mSel, dSel, defD) {
@@ -339,6 +398,7 @@ const base = import.meta.env.BASE_URL;
         document.getElementById(prefix + '-zizuo').innerHTML = `<span class="dishi">${diShi(gan, zhi)}</span>`;
         const ss = shenSha(gan, zhi, dayGan, dayZhi, xk);
         document.getElementById(prefix + '-shensha').innerHTML = ss.length ? `<span class="cang">${ss.join(' ')}</span>` : '<span class="cang">-</span>';
+        document.getElementById(prefix + '-nayin').innerHTML = `<span class="nayin">${nayinOf(gz)}</span>`;
       });
 
       const dyRows = data.dayun.slice(1).map(d => {
@@ -391,13 +451,19 @@ const base = import.meta.env.BASE_URL;
       document.getElementById('lp-liushi').innerHTML =
         `<thead><tr><th>Window</th><th>Branch</th><th>Pillar</th></tr></thead><tbody>${lsRows}</tbody>`;
 
-      const natalGan = data.day[0];
-      const natalZhi = data.day[1];
-      const dyZhi = data.currentDaYun[1];
-      const lyZhi = data.currentLiuNian[1];
-      document.getElementById('lp-relations').innerHTML =
-        `<div class="relation-row"><span class="relation-pill">Day stem: ${natalGan}</span><span class="relation-pill">Day branch: ${natalZhi}</span><span class="relation-pill">Da Yun branch: ${dyZhi}</span><span class="relation-pill">Liu Nian branch: ${lyZhi}</span></div>` +
-        `<p style="font-size:13px;color:var(--muted)">Note: hidden stems and detailed clash/combine interactions can be layered on top; this is a simplified view.</p>`;
+      const ec2 = Lunar.fromSolar(birthSolar).getEightChar();
+      const taiyuan = ec2.getTaiYuan();
+      const minggong = ec2.getMingGong();
+      const shengong = ec2.getShenGong();
+      document.getElementById('lp-taiyuan').innerHTML = `Tai Yuan <span class="gz">${taiyuan}</span> <span class="nayin">${nayinOf(taiyuan)}</span>`;
+      document.getElementById('lp-minggong').innerHTML = `Ming Gong <span class="gz">${minggong}</span> <span class="nayin">${nayinOf(minggong)}</span>`;
+      document.getElementById('lp-shengong').innerHTML = `Shen Gong <span class="gz">${shengong}</span> <span class="nayin">${nayinOf(shengong)}</span>`;
+
+      const relList = [
+        { l: 'Yr', z: data.year[1] }, { l: 'Mo', z: data.month[1] }, { l: 'Dy', z: data.day[1] },
+        { l: 'Hr', z: data.time[1] }, { l: 'Yun', z: data.currentDaYun[1] }, { l: 'Liu', z: data.currentLiuNian[1] }
+      ];
+      document.getElementById('lp-relations').innerHTML = computeRelationsEN(relList);
     }
 
     document.getElementById('lp-btn').addEventListener('click', render);
