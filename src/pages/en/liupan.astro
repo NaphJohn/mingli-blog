@@ -10,8 +10,19 @@ const base = import.meta.env.BASE_URL;
   <section class="tool-card">
     <h2>📝 Birth Details</h2>
     <div class="tool-form">
-      <label>Birth date <input type="date" id="lp-date" /></label>
-      <label>Birth time <input type="time" id="lp-time" value="12:00" /></label>
+      <label class="date-label">Birth date
+        <span class="date-selects">
+          <select id="lp-year"></select><i>Y</i>
+          <select id="lp-month"></select><i>M</i>
+          <select id="lp-day"></select><i>D</i>
+        </span>
+      </label>
+      <label class="date-label">Birth time
+        <span class="time-selects">
+          <select id="lp-hour"></select><i>h</i>
+          <select id="lp-min"></select><i>m</i>
+        </span>
+      </label>
       <label>Gender
         <select id="lp-gender">
           <option value="1">Male</option>
@@ -79,6 +90,10 @@ const base = import.meta.env.BASE_URL;
     .tool-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 10px; }
     .tool-form label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
     .tool-form input, .tool-form select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
+    .date-label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
+    .date-selects, .time-selects { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .date-selects select, .time-selects select { padding: 8px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
+    .date-selects i, .time-selects i { font-style: normal; color: var(--muted); font-size: 14px; }
     .tool-btn { padding: 9px 18px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform .15s, opacity .15s; text-decoration: none; display: inline-block; }
     .tool-btn:hover { transform: translateY(-1px); opacity: .92; }
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -105,6 +120,49 @@ const base = import.meta.env.BASE_URL;
 
     function splitGZ(gz) { return gz ? { gan: gz[0], zhi: gz[1], cang: ZHI_CANG[gz[1]] || '' } : { gan: '-', zhi: '-', cang: '-' }; }
     function formatDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+    function fillDayOptions(ySel, mSel, dSel, defD) {
+      const y = +ySel.value, m = +mSel.value;
+      const max = new Date(y, m, 0).getDate();
+      dSel.innerHTML = '';
+      for (let d = 1; d <= max; d++) {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d;
+        if (d === defD) o.selected = true;
+        dSel.appendChild(o);
+      }
+    }
+    function setupDate(prefix, defY, defM, defD) {
+      const ySel = document.getElementById(prefix + '-year');
+      const mSel = document.getElementById(prefix + '-month');
+      const dSel = document.getElementById(prefix + '-day');
+      const START = 1920, END = 2025;
+      if (!ySel || !mSel || !dSel) return;
+      for (let y = END; y >= START; y--) { const o = document.createElement('option'); o.value = y; o.textContent = y; if (y === defY) o.selected = true; ySel.appendChild(o); }
+      for (let m = 1; m <= 12; m++) { const o = document.createElement('option'); o.value = m; o.textContent = m; if (m === defM) o.selected = true; mSel.appendChild(o); }
+      fillDayOptions(ySel, mSel, dSel, defD);
+      ySel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, defD));
+      mSel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, defD));
+    }
+    function readDate(prefix) {
+      const y = +document.getElementById(prefix + '-year').value;
+      const m = +document.getElementById(prefix + '-month').value;
+      const d = +document.getElementById(prefix + '-day').value;
+      if (!y || !m || !d) return null;
+      return { y, m, d };
+    }
+    function setupTime(prefix, defH, defM) {
+      const hSel = document.getElementById(prefix + '-hour');
+      const mSel = document.getElementById(prefix + '-min');
+      if (!hSel || !mSel) return;
+      for (let h = 0; h < 24; h++) { const o = document.createElement('option'); o.value = h; o.textContent = h; if (h === defH) o.selected = true; hSel.appendChild(o); }
+      for (let m = 0; m < 60; m++) { const o = document.createElement('option'); o.value = String(m).padStart(2, '0'); o.textContent = String(m).padStart(2, '0'); if (m === defM) o.selected = true; mSel.appendChild(o); }
+    }
+    function readTime(prefix) {
+      const h = +document.getElementById(prefix + '-hour').value;
+      const m = +document.getElementById(prefix + '-min').value;
+      return { h, m };
+    }
 
     function compute(birthSolar, gender) {
       const lunar = Lunar.fromSolar(birthSolar);
@@ -150,12 +208,11 @@ const base = import.meta.env.BASE_URL;
     }
 
     function render() {
-      const dateVal = document.getElementById('lp-date').value;
-      const timeVal = document.getElementById('lp-time').value || '12:00';
+      const p = readDate('lp');
+      if (!p) { alert('Please pick a birth date'); return; }
+      const { h: hh, m: mm } = readTime('lp');
       const gender = +document.getElementById('lp-gender').value;
-      if (!dateVal) { alert('Please pick a birth date'); return; }
-      const [y, m, d] = dateVal.split('-').map(Number);
-      const [hh, mm] = timeVal.split(':').map(Number);
+      const { y, m, d } = p;
       const birthSolar = Solar.fromYmdHms(y, m, d, hh, mm, 0);
       const data = compute(birthSolar, gender);
       document.getElementById('lp-result').hidden = false;
@@ -242,5 +299,8 @@ const base = import.meta.env.BASE_URL;
     }
 
     document.getElementById('lp-btn').addEventListener('click', render);
+
+    setupDate('lp', 1990, 6, 15);
+    setupTime('lp', 12, 0);
   </script>
 </BlogPost>

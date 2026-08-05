@@ -11,7 +11,13 @@ const base = import.meta.env.BASE_URL;
     <h2>🔮 星座速查</h2>
     <p>输入出生日期，看看你的太阳星座与守护元素。</p>
     <div class="tool-form">
-      <label>出生日期 <input type="date" id="zx-date" /></label>
+      <label class="date-label">出生日期
+        <span class="date-selects">
+          <select id="zx-year"></select><i>年</i>
+          <select id="zx-month"></select><i>月</i>
+          <select id="zx-day"></select><i>日</i>
+        </span>
+      </label>
       <button id="zx-btn" class="tool-btn" type="button">查询</button>
     </div>
     <div id="zx-result" class="tool-result" hidden></div>
@@ -21,8 +27,20 @@ const base = import.meta.env.BASE_URL;
     <h2>💞 缘分合盘</h2>
     <p>两位的出生日期，看看星座配对指数（按元素相生相克简化测算）。</p>
     <div class="tool-form">
-      <label>TA ① <input type="date" id="hp-a" /></label>
-      <label>TA ② <input type="date" id="hp-b" /></label>
+      <label class="date-label">TA ①
+        <span class="date-selects">
+          <select id="hp-a-year"></select><i>年</i>
+          <select id="hp-a-month"></select><i>月</i>
+          <select id="hp-a-day"></select><i>日</i>
+        </span>
+      </label>
+      <label class="date-label">TA ②
+        <span class="date-selects">
+          <select id="hp-b-year"></select><i>年</i>
+          <select id="hp-b-month"></select><i>月</i>
+          <select id="hp-b-day"></select><i>日</i>
+        </span>
+      </label>
       <button id="hp-btn" class="tool-btn" type="button">合盘</button>
     </div>
     <div id="hp-result" class="tool-result" hidden></div>
@@ -32,8 +50,19 @@ const base = import.meta.env.BASE_URL;
     <h2>🌙 生辰历</h2>
     <p>输入出生年月日时，排出你的四柱（年柱、月柱、日柱、时柱）与出生节气。</p>
     <div class="tool-form">
-      <label>出生日期 <input type="date" id="sc-date" /></label>
-      <label>出生时间 <input type="time" id="sc-time" value="12:00" /></label>
+      <label class="date-label">出生日期
+        <span class="date-selects">
+          <select id="sc-year"></select><i>年</i>
+          <select id="sc-month"></select><i>月</i>
+          <select id="sc-day"></select><i>日</i>
+        </span>
+      </label>
+      <label class="date-label">出生时间
+        <span class="time-selects">
+          <select id="sc-hour"></select><i>时</i>
+          <select id="sc-min"></select><i>分</i>
+        </span>
+      </label>
       <button id="sc-btn" class="tool-btn" type="button">排盘</button>
     </div>
     <div id="sc-result" class="tool-result" hidden></div>
@@ -55,6 +84,10 @@ const base = import.meta.env.BASE_URL;
     .tool-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 10px; }
     .tool-form label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
     .tool-form input { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
+    .date-label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
+    .date-selects, .time-selects { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .date-selects select, .time-selects select { padding: 8px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
+    .date-selects i, .time-selects i { font-style: normal; color: var(--muted); font-size: 14px; }
     .tool-btn { padding: 9px 18px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform .15s, opacity .15s; }
     .tool-btn:hover { transform: translateY(-1px); opacity: .92; }
     .tool-result { margin-top: 16px; padding: 16px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); line-height: 1.8; }
@@ -133,19 +166,54 @@ const base = import.meta.env.BASE_URL;
       '猪': '豁达乐天，福气旺，宜守分寸。',
     };
 
-    function parseDate(v) {
-      if (!v) return null;
-      const [y, m, d] = v.split('-').map(Number);
+    function fillDayOptions(ySel, mSel, dSel, defD) {
+      const y = +ySel.value, m = +mSel.value;
+      const max = new Date(y, m, 0).getDate();
+      dSel.innerHTML = '';
+      for (let d = 1; d <= max; d++) {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d;
+        if (d === defD) o.selected = true;
+        dSel.appendChild(o);
+      }
+    }
+    function setupDate(prefix, defY, defM, defD) {
+      const ySel = document.getElementById(prefix + '-year');
+      const mSel = document.getElementById(prefix + '-month');
+      const dSel = document.getElementById(prefix + '-day');
+      const START = 1920, END = 2025;
+      if (!ySel || !mSel || !dSel) return;
+      for (let y = END; y >= START; y--) { const o = document.createElement('option'); o.value = y; o.textContent = y; if (y === defY) o.selected = true; ySel.appendChild(o); }
+      for (let m = 1; m <= 12; m++) { const o = document.createElement('option'); o.value = m; o.textContent = m; if (m === defM) o.selected = true; mSel.appendChild(o); }
+      fillDayOptions(ySel, mSel, dSel, defD);
+      ySel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, defD));
+      mSel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, defD));
+    }
+    function readDate(prefix) {
+      const y = +document.getElementById(prefix + '-year').value;
+      const m = +document.getElementById(prefix + '-month').value;
+      const d = +document.getElementById(prefix + '-day').value;
       if (!y || !m || !d) return null;
       return { y, m, d };
     }
+    function setupTime(prefix, defH, defM) {
+      const hSel = document.getElementById(prefix + '-hour');
+      const mSel = document.getElementById(prefix + '-min');
+      if (!hSel || !mSel) return;
+      for (let h = 0; h < 24; h++) { const o = document.createElement('option'); o.value = h; o.textContent = h; if (h === defH) o.selected = true; hSel.appendChild(o); }
+      for (let m = 0; m < 60; m++) { const o = document.createElement('option'); o.value = String(m).padStart(2, '0'); o.textContent = String(m).padStart(2, '0'); if (m === defM) o.selected = true; mSel.appendChild(o); }
+    }
+    function readTime(prefix) {
+      const h = +document.getElementById(prefix + '-hour').value;
+      const m = +document.getElementById(prefix + '-min').value;
+      return { h, m };
+    }
 
     // 工具一：星座速查
-    const zxDate = document.getElementById('zx-date');
     const zxBtn = document.getElementById('zx-btn');
     const zxOut = document.getElementById('zx-result');
     zxBtn.addEventListener('click', () => {
-      const p = parseDate(zxDate.value);
+      const p = readDate('zx');
       if (!p) { zxOut.hidden = false; zxOut.textContent = '请先选择出生日期。'; return; }
       const s = getSign(p.m, p.d);
       zxOut.hidden = false;
@@ -157,12 +225,10 @@ const base = import.meta.env.BASE_URL;
     });
 
     // 工具二：合盘
-    const hpA = document.getElementById('hp-a');
-    const hpB = document.getElementById('hp-b');
     const hpBtn = document.getElementById('hp-btn');
     const hpOut = document.getElementById('hp-result');
     hpBtn.addEventListener('click', () => {
-      const a = parseDate(hpA.value), b = parseDate(hpB.value);
+      const a = readDate('hp-a'), b = readDate('hp-b');
       if (!a || !b) { hpOut.hidden = false; hpOut.textContent = '请选择两位的出生日期。'; return; }
       const sa = getSign(a.m, a.d), sb = getSign(b.m, b.d);
       const score = pairScore(sa.el, sb.el);
@@ -175,15 +241,12 @@ const base = import.meta.env.BASE_URL;
     });
 
     // 工具三：生辰历（四柱 + 节气）
-    const scDate = document.getElementById('sc-date');
-    const scTime = document.getElementById('sc-time');
     const scBtn = document.getElementById('sc-btn');
     const scOut = document.getElementById('sc-result');
     scBtn.addEventListener('click', () => {
-      const p = parseDate(scDate.value);
+      const p = readDate('sc');
       if (!p) { scOut.hidden = false; scOut.textContent = '请选择出生日期。'; return; }
-      const t = scTime.value || '12:00';
-      const [hh, mm] = t.split(':').map(Number);
+      const { h: hh, m: mm } = readTime('sc');
       const solar = Solar.fromYmdHms(p.y, p.m, p.d, hh, mm, 0);
       const lunar = Lunar.fromSolar(solar);
       const ec = lunar.getEightChar();
@@ -210,5 +273,11 @@ const base = import.meta.env.BASE_URL;
         `<tbody><tr><td>${yearGZ}</td><td>${monthGZ}</td><td>${dayGZ}</td><td>${timeGZ}</td></tr></tbody></table>` +
         `<p style="font-size:13px;color:var(--muted)">${termText}。注：排盘基于 lunar-javascript 节气与干支算法，仅供文化娱乐参考。</p>`;
     });
+
+    setupDate('zx', 1990, 6, 15);
+    setupDate('hp-a', 1990, 6, 15);
+    setupDate('hp-b', 1992, 9, 20);
+    setupDate('sc', 1990, 6, 15);
+    setupTime('sc', 12, 0);
   </script>
 </BlogPost>
