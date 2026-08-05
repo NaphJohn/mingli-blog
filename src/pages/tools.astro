@@ -70,9 +70,8 @@ const base = import.meta.env.BASE_URL;
     .pillar-table td { font-size: 20px; font-weight: 700; color: var(--accent); }
   </style>
 
-  <script type="module">
-    import { Solar, Lunar } from 'lunar-javascript';
-
+  <script is:inline src={`${base}lunar.js`}></script>
+  <script is:inline>
     const SIGNS = [
       { name: '白羊座', en: 'Aries', sym: '♈', start: [3, 21], end: [4, 19], el: '火', planet: '火星', traits: '热情、冲动、行动派' },
       { name: '金牛座', en: 'Taurus', sym: '♉', start: [4, 20], end: [5, 20], el: '土', planet: '金星', traits: '稳重、务实、爱美' },
