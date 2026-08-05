@@ -3,12 +3,12 @@ import BlogPost from '../layouts/BlogPost.astro';
 const base = import.meta.env.BASE_URL;
 ---
 
-<BlogPost title="流盘" description="输入生辰，生成大运、流年、流月、流日、流时的动态命盘矩阵。" lang="zh" altLang="English" altHref="/en/liupan">
-  <p class="lead">输入你的出生年月日时与性别，排出四柱、大运、流年、流月、流日、流时的动态命盘。</p>
+<BlogPost title="流盘" description="输入生辰与目标时间，生成大运、流年、流月、流日、流时的动态命盘矩阵。" lang="zh" altLang="English" altHref="/en/liupan">
+  <p class="lead">输入你的出生年月日时与性别，再选一个目标时刻，排出该时刻的四柱、大运、流年、流月、流日、流时整图。</p>
   <p class="disclaimer">⚠️ 本页内容仅供娱乐与文化了解，不构成任何人生、投资或健康建议。</p>
 
   <section class="tool-card">
-    <h2>📝 输入生辰</h2>
+    <h2>📝 输入生辰与目标时间</h2>
     <div class="tool-form">
       <label class="date-label">出生日期
         <span class="date-selects">
@@ -23,6 +23,19 @@ const base = import.meta.env.BASE_URL;
           <select id="lp-min"></select><i>分</i>
         </span>
       </label>
+      <label class="date-label">目标时间
+        <span class="date-selects">
+          <select id="tg-year"></select><i>年</i>
+          <select id="tg-month"></select><i>月</i>
+          <select id="tg-day"></select><i>日</i>
+        </span>
+      </label>
+      <label class="date-label">目标时刻
+        <span class="time-selects">
+          <select id="tg-hour"></select><i>时</i>
+          <select id="tg-min"></select><i>分</i>
+        </span>
+      </label>
       <label>性别
         <select id="lp-gender">
           <option value="1">男</option>
@@ -34,16 +47,20 @@ const base = import.meta.env.BASE_URL;
   </section>
 
   <div id="lp-result" hidden>
-    <section class="tool-card">
-      <h2>🧭 四柱与当前运程</h2>
+    <section class="tool-card chart-card">
+      <h2>🧭 命盘</h2>
       <div id="lp-summary"></div>
       <div class="table-wrap">
         <table class="lp-table" id="lp-matrix">
           <thead><tr><th></th><th>年柱</th><th>月柱</th><th>日柱</th><th>时柱</th><th>大运</th><th>流年</th><th>流月</th><th>流日</th></tr></thead>
           <tbody>
+            <tr><th>主星</th><td id="lp-y-zhu"></td><td id="lp-m-zhu"></td><td id="lp-d-zhu"></td><td id="lp-h-zhu"></td><td id="lp-dy-zhu"></td><td id="lp-ly-zhu"></td><td id="lp-lm-zhu"></td><td id="lp-ld-zhu"></td></tr>
             <tr><th>天干</th><td id="lp-y-gan"></td><td id="lp-m-gan"></td><td id="lp-d-gan"></td><td id="lp-h-gan"></td><td id="lp-dy-gan"></td><td id="lp-ly-gan"></td><td id="lp-lm-gan"></td><td id="lp-ld-gan"></td></tr>
             <tr><th>地支</th><td id="lp-y-zhi"></td><td id="lp-m-zhi"></td><td id="lp-d-zhi"></td><td id="lp-h-zhi"></td><td id="lp-dy-zhi"></td><td id="lp-ly-zhi"></td><td id="lp-lm-zhi"></td><td id="lp-ld-zhi"></td></tr>
             <tr><th>藏干</th><td id="lp-y-cang"></td><td id="lp-m-cang"></td><td id="lp-d-cang"></td><td id="lp-h-cang"></td><td id="lp-dy-cang"></td><td id="lp-ly-cang"></td><td id="lp-lm-cang"></td><td id="lp-ld-cang"></td></tr>
+            <tr><th>地势</th><td id="lp-y-dishi"></td><td id="lp-m-dishi"></td><td id="lp-d-dishi"></td><td id="lp-h-dishi"></td><td id="lp-dy-dishi"></td><td id="lp-ly-dishi"></td><td id="lp-lm-dishi"></td><td id="lp-ld-dishi"></td></tr>
+            <tr><th>自坐</th><td id="lp-y-zizuo"></td><td id="lp-m-zizuo"></td><td id="lp-d-zizuo"></td><td id="lp-h-zizuo"></td><td id="lp-dy-zizuo"></td><td id="lp-ly-zizuo"></td><td id="lp-lm-zizuo"></td><td id="lp-ld-zizuo"></td></tr>
+            <tr><th>神煞</th><td id="lp-y-shensha" class="shensha"></td><td id="lp-m-shensha" class="shensha"></td><td id="lp-d-shensha" class="shensha"></td><td id="lp-h-shensha" class="shensha"></td><td id="lp-dy-shensha" class="shensha"></td><td id="lp-ly-shensha" class="shensha"></td><td id="lp-lm-shensha" class="shensha"></td><td id="lp-ld-shensha" class="shensha"></td></tr>
           </tbody>
         </table>
       </div>
@@ -87,6 +104,9 @@ const base = import.meta.env.BASE_URL;
     .disclaimer { background: var(--code-bg); border: 1px dashed var(--border); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--muted); }
     .tool-card { border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin: 20px 0; background: var(--bg); }
     .tool-card h2 { margin-top: 0; border-left: 4px solid var(--accent); padding-left: 10px; }
+    .chart-card { padding: 0; overflow: hidden; }
+    .chart-card h2 { margin: 18px 20px 0; }
+    .chart-card #lp-summary { margin: 8px 20px 12px; }
     .tool-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 10px; }
     .tool-form label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
     .tool-form input, .tool-form select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
@@ -97,13 +117,16 @@ const base = import.meta.env.BASE_URL;
     .tool-btn { padding: 9px 18px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform .15s, opacity .15s; text-decoration: none; display: inline-block; }
     .tool-btn:hover { transform: translateY(-1px); opacity: .92; }
     .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .lp-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
-    .lp-table th, .lp-table td { border: 1px solid var(--border); padding: 8px 6px; text-align: center; }
+    .lp-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 640px; }
+    .lp-table th, .lp-table td { border: 1px solid var(--border); padding: 8px 5px; text-align: center; }
     .lp-table thead th { background: var(--code-bg); color: var(--muted); font-size: 13px; }
     .lp-table tbody th { background: var(--code-bg); color: var(--muted); font-size: 13px; }
     .lp-table td { color: var(--fg); }
     .gz { font-size: 18px; font-weight: 700; color: var(--accent); }
     .cang { font-size: 12px; color: var(--muted); }
+    .zhu { font-size: 13px; font-weight: 600; }
+    .dishi { font-size: 12px; color: var(--muted); }
+    .shensha { font-size: 11px; color: var(--muted); line-height: 1.4; max-width: 90px; }
     .current { background: rgba(124,92,255,0.10); }
     .relation-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; font-size: 14px; }
     .relation-pill { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; background: var(--code-bg); }
@@ -115,11 +138,64 @@ const base = import.meta.env.BASE_URL;
       '子': '癸', '丑': '己癸辛', '寅': '甲丙戊', '卯': '乙', '辰': '戊乙癸', '巳': '丙戊庚',
       '午': '丁己', '未': '己丁乙', '申': '庚壬戊', '酉': '辛', '戌': '戊辛丁', '亥': '壬甲'
     };
-    const ZHI_TIME = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-    const TIME_LABEL = ['23-01', '01-03', '03-05', '05-07', '07-09', '09-11', '11-13', '13-15', '15-17', '17-19', '19-21', '21-23'];
+    const ZHI_TIME = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+    const TIME_LABEL = ['23-01','01-03','03-05','05-07','07-09','09-11','11-13','13-15','15-17','17-19','19-21','21-23'];
+
+    const GAN_WUXING = {甲:'木',乙:'木',丙:'火',丁:'火',戊:'土',己:'土',庚:'金',辛:'金',壬:'水',癸:'水'};
+    const GAN_YINYANG = {甲:'阳',乙:'阴',丙:'阳',丁:'阴',戊:'阳',己:'阴',庚:'阳',辛:'阴',壬:'阳',癸:'阴'};
+    const WUXING_SHENG = {木:'火',火:'土',土:'金',金:'水',水:'木'};
+    const WUXING_KE = {木:'土',土:'水',水:'火',火:'金',金:'木'};
+
+    const CHANGSHENG = {
+      甲: ['亥','子','丑','寅','卯','辰','巳','午','未','申','酉','戌'],
+      丙: ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'],
+      戊: ['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'],
+      庚: ['巳','午','未','申','酉','戌','亥','子','丑','寅','卯','辰'],
+      壬: ['申','酉','戌','亥','子','丑','寅','卯','辰','巳','午','未'],
+      乙: ['午','巳','辰','卯','寅','丑','子','亥','戌','酉','申','未'],
+      丁: ['酉','申','未','午','巳','辰','卯','寅','丑','子','亥','戌'],
+      己: ['酉','申','未','午','巳','辰','卯','寅','丑','子','亥','戌'],
+      辛: ['子','亥','戌','酉','申','未','午','巳','辰','卯','寅','丑'],
+      癸: ['卯','寅','丑','子','亥','戌','酉','申','未','午','巳','辰']
+    };
+    const CHANGSHENG_NAMES = ['长生','沐浴','冠带','临官','帝旺','衰','病','死','墓','绝','胎','养'];
 
     function splitGZ(gz) { return gz ? { gan: gz[0], zhi: gz[1], cang: ZHI_CANG[gz[1]] || '' } : { gan: '-', zhi: '-', cang: '-' }; }
     function formatDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+    function shiShen(dayGan, targetGan) {
+      if (dayGan === targetGan) return '日主';
+      const dw = GAN_WUXING[dayGan], tw = GAN_WUXING[targetGan];
+      const dy = GAN_YINYANG[dayGan], ty = GAN_YINYANG[targetGan];
+      const same = dy === ty;
+      if (dw === tw) return same ? '比肩' : '劫财';
+      if (WUXING_SHENG[dw] === tw) return same ? '食神' : '伤官';
+      if (WUXING_KE[dw] === tw) return same ? '偏财' : '正财';
+      if (WUXING_SHENG[tw] === dw) return same ? '偏印' : '正印';
+      if (WUXING_KE[tw] === dw) return same ? '七杀' : '正官';
+      return '';
+    }
+    function diShi(gan, zhi) {
+      const idx = CHANGSHENG[gan].indexOf(zhi);
+      return idx >= 0 ? CHANGSHENG_NAMES[idx] : '-';
+    }
+    function shenSha(gan, zhi, dayGan, dayZhi, xunKong) {
+      const list = [];
+      const tianyi = {甲:['丑','未'],戊:['丑','未'],庚:['丑','未'],乙:['子','申'],己:['子','申'],丙:['亥','酉'],丁:['亥','酉'],壬:['卯','巳'],癸:['卯','巳'],辛:['寅','午']};
+      const wenchang = {甲:'巳',乙:'午',丙:'申',戊:'申',丁:'酉',己:'酉',庚:'亥',辛:'子',壬:'寅',癸:'卯'};
+      const yangren = {甲:'卯',乙:'寅',丙:'午',戊:'午',丁:'巳',己:'巳',庚:'酉',辛:'申',壬:'子',癸:'亥'};
+      const yima = {申:'寅',子:'寅',辰:'寅',寅:'申',午:'申',戌:'申',巳:'亥',酉:'亥',丑:'亥',亥:'巳',卯:'巳',未:'巳'};
+      const taohua = {申:'酉',子:'酉',辰:'酉',寅:'卯',午:'卯',戌:'卯',巳:'午',酉:'午',丑:'午',亥:'子',卯:'子',未:'子'};
+      const huagai = {申:'辰',子:'辰',辰:'辰',寅:'戌',午:'戌',戌:'戌',巳:'丑',酉:'丑',丑:'丑',亥:'未',卯:'未',未:'未'};
+      if (tianyi[dayGan]?.includes(zhi)) list.push('天乙');
+      if (wenchang[dayGan] === zhi) list.push('文昌');
+      if (yangren[dayGan] === zhi) list.push('羊刃');
+      if (yima[dayZhi] === zhi) list.push('驿马');
+      if (taohua[dayZhi] === zhi) list.push('桃花');
+      if (huagai[dayZhi] === zhi) list.push('华盖');
+      if (xunKong && xunKong.includes(zhi)) list.push('空亡');
+      return list;
+    }
 
     function fillDayOptions(ySel, mSel, dSel, defD) {
       const y = +ySel.value, m = +mSel.value;
@@ -136,13 +212,13 @@ const base = import.meta.env.BASE_URL;
       const ySel = document.getElementById(prefix + '-year');
       const mSel = document.getElementById(prefix + '-month');
       const dSel = document.getElementById(prefix + '-day');
-      const START = 1920, END = 2025;
+      const START = 1920, END = 2035;
       if (!ySel || !mSel || !dSel) return;
       for (let y = END; y >= START; y--) { const o = document.createElement('option'); o.value = y; o.textContent = y; if (y === defY) o.selected = true; ySel.appendChild(o); }
       for (let m = 1; m <= 12; m++) { const o = document.createElement('option'); o.value = m; o.textContent = m; if (m === defM) o.selected = true; mSel.appendChild(o); }
       fillDayOptions(ySel, mSel, dSel, defD);
-      ySel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, defD));
-      mSel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, defD));
+      ySel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, +dSel.value || 1));
+      mSel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, +dSel.value || 1));
     }
     function readDate(prefix) {
       const y = +document.getElementById(prefix + '-year').value;
@@ -156,7 +232,7 @@ const base = import.meta.env.BASE_URL;
       const mSel = document.getElementById(prefix + '-min');
       if (!hSel || !mSel) return;
       for (let h = 0; h < 24; h++) { const o = document.createElement('option'); o.value = h; o.textContent = h; if (h === defH) o.selected = true; hSel.appendChild(o); }
-      for (let m = 0; m < 60; m++) { const o = document.createElement('option'); o.value = String(m).padStart(2, '0'); o.textContent = String(m).padStart(2, '0'); if (m === defM) o.selected = true; mSel.appendChild(o); }
+      for (let m = 0; m < 60; m++) { const o = document.createElement('option'); o.value = String(m).padStart(2,'0'); o.textContent = String(m).padStart(2,'0'); if (m === defM) o.selected = true; mSel.appendChild(o); }
     }
     function readTime(prefix) {
       const h = +document.getElementById(prefix + '-hour').value;
@@ -164,48 +240,48 @@ const base = import.meta.env.BASE_URL;
       return { h, m };
     }
 
-    function compute(birthSolar, gender) {
-      const lunar = Lunar.fromSolar(birthSolar);
-      const ec = lunar.getEightChar();
+    function compute(birthSolar, gender, targetSolar) {
+      const birthLunar = Lunar.fromSolar(birthSolar);
+      const ec = birthLunar.getEightChar();
       const yun = ec.getYun(gender);
       const dayun = yun.getDaYun();
-      const today = new Date();
-      const todayYear = today.getFullYear();
+      const targetYear = targetSolar.getYear();
+      const targetMonth = targetSolar.getMonth();
 
-      // 当前大运：找到包含今年的大运（跳过无干支的 dx[0] 起运前）
       let currentDaYun = dayun.slice(1).find(d => {
         const start = d.getStartYear();
         const idx = dayun.indexOf(d);
         const end = idx < dayun.length - 1 ? dayun[idx + 1].getStartYear() : start + 10;
-        return todayYear >= start && todayYear < end;
+        return targetYear >= start && targetYear < end;
       }) || dayun[dayun.length - 1];
 
-      // 当前流年、流月、流日、流时
       const liunianList = currentDaYun.getLiuNian();
-      const currentLiuNian = liunianList.find(l => l.getYear() === todayYear) || liunianList[0];
+      const currentLiuNian = liunianList.find(l => l.getYear() === targetYear) || liunianList[0];
       const liuyueList = currentLiuNian.getLiuYue();
-      const currentMonth = today.getMonth() + 1;
       const currentLiuYue = liuyueList.find(l => {
         const m = l.getMonthInChinese();
         const map = {'正':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'冬':11,'腊':12};
-        return map[m] === currentMonth;
+        return map[m] === targetMonth;
       }) || liuyueList[0];
 
-      const todaySolar = Solar.fromYmd(todayYear, today.getMonth()+1, today.getDate());
-      const todayLunar = Lunar.fromSolar(todaySolar);
-      const todayDayGZ = todayLunar.getEightChar().getDay();
-      const todayHourGZ = todayLunar.getEightChar().getTime();
+      const targetLunar = Lunar.fromSolar(targetSolar);
+      const targetDayGZ = targetLunar.getEightChar().getDay();
+      const targetHourGZ = targetLunar.getEightChar().getTime();
 
       return {
         year: ec.getYear(), month: ec.getMonth(), day: ec.getDay(), time: ec.getTime(),
         currentDaYun: currentDaYun.getGanZhi(),
         currentLiuNian: currentLiuNian.getGanZhi(),
         currentLiuYue: currentLiuYue.getGanZhi(),
-        currentLiuRi: todayDayGZ,
-        currentLiuShi: todayHourGZ,
+        currentLiuRi: targetDayGZ,
+        currentLiuShi: targetHourGZ,
         dayun: dayun,
         liunian: liunianList,
         liuyue: liuyueList,
+        xunkong: {
+          year: ec.getYearXunKong(), month: ec.getMonthXunKong(),
+          day: ec.getDayXunKong(), time: ec.getTimeXunKong()
+        }
       };
     }
 
@@ -216,33 +292,55 @@ const base = import.meta.env.BASE_URL;
       const gender = +document.getElementById('lp-gender').value;
       const { y, m, d } = p;
       const birthSolar = Solar.fromYmdHms(y, m, d, hh, mm, 0);
-      const data = compute(birthSolar, gender);
+
+      const tp = readDate('tg');
+      const { h: th, m: tmin } = readTime('tg');
+      let targetSolar;
+      if (tp) {
+        targetSolar = Solar.fromYmdHms(tp.y, tp.m, tp.d, th, tmin, 0);
+      } else {
+        targetSolar = Solar.fromDate(new Date());
+      }
+
+      const data = compute(birthSolar, gender, targetSolar);
       document.getElementById('lp-result').hidden = false;
 
-      const lunar = Lunar.fromSolar(birthSolar);
-      const prevTerm = lunar.getPrevJieQi();
-      const nextTerm = lunar.getNextJieQi();
-      const termToday = lunar.getJieQi();
+      const birthLunar = Lunar.fromSolar(birthSolar);
+      const prevTerm = birthLunar.getPrevJieQi();
+      const nextTerm = birthLunar.getNextJieQi();
+      const termToday = birthLunar.getJieQi();
       const termText = termToday
         ? `出生节气：${termToday}`
         : `出生节气：${prevTerm.getName()} 后 ${birthSolar.subtract(prevTerm.getSolar())} 天 · ${nextTerm.getName()} 前 ${nextTerm.getSolar().subtract(birthSolar)} 天`;
+      const tg = readDate('tg');
+      const targetText = tg
+        ? `目标时间：${tg.y}年${tg.m}月${tg.d}日 ${String(th).padStart(2,'0')}:${String(tmin).padStart(2,'0')}`
+        : `目标时间：${formatDate(new Date())}（默认此刻）`;
       document.getElementById('lp-summary').innerHTML =
-        `<p><b>${y}年${m}月${d}日 ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</b> · ${termText}</p>`;
+        `<p><b>${y}年${m}月${d}日 ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</b> · ${termText}</p>` +
+        `<p style="font-size:13px;color:var(--muted)">${targetText}</p>`;
 
-      // 矩阵
+      const dayGan = data.day[0];
+      const dayZhi = data.day[1];
       const cols = [
-        ['lp-y', data.year], ['lp-m', data.month], ['lp-d', data.day], ['lp-h', data.time],
-        ['lp-dy', data.currentDaYun], ['lp-ly', data.currentLiuNian],
-        ['lp-lm', data.currentLiuYue], ['lp-ld', data.currentLiuRi]
+        ['lp-y', data.year, data.xunkong.year], ['lp-m', data.month, data.xunkong.month],
+        ['lp-d', data.day, data.xunkong.day], ['lp-h', data.time, data.xunkong.time],
+        ['lp-dy', data.currentDaYun, ''], ['lp-ly', data.currentLiuNian, ''],
+        ['lp-lm', data.currentLiuYue, ''], ['lp-ld', data.currentLiuRi, '']
       ];
-      cols.forEach(([prefix, gz]) => {
+      cols.forEach(([prefix, gz, xk]) => {
         const { gan, zhi, cang } = splitGZ(gz);
+        const isDay = prefix === 'lp-d';
+        document.getElementById(prefix + '-zhu').innerHTML = `<span class="zhu">${isDay ? '日主' : shiShen(dayGan, gan)}</span>`;
         document.getElementById(prefix + '-gan').innerHTML = `<span class="gz">${gan}</span>`;
         document.getElementById(prefix + '-zhi').innerHTML = `<span class="gz">${zhi}</span>`;
         document.getElementById(prefix + '-cang').innerHTML = `<span class="cang">${cang}</span>`;
+        document.getElementById(prefix + '-dishi').innerHTML = `<span class="dishi">${diShi(dayGan, zhi)}</span>`;
+        document.getElementById(prefix + '-zizuo').innerHTML = `<span class="dishi">${diShi(gan, zhi)}</span>`;
+        const ss = shenSha(gan, zhi, dayGan, dayZhi, xk);
+        document.getElementById(prefix + '-shensha').innerHTML = ss.length ? `<span class="cang">${ss.join(' ')}</span>` : '<span class="cang">-</span>';
       });
 
-      // 大运表
       const dyRows = data.dayun.slice(1).map(d => {
         const gz = d.getGanZhi();
         const start = d.getStartYear();
@@ -254,16 +352,14 @@ const base = import.meta.env.BASE_URL;
       document.getElementById('lp-dayun').innerHTML =
         `<thead><tr><th>年份</th><th>岁数</th><th>干支</th></tr></thead><tbody>${dyRows}</tbody>`;
 
-      // 流年表
       const lnRows = data.liunian.map(l => {
         const gz = l.getGanZhi();
         const isCur = gz === data.currentLiuNian;
-        return `<tr class="${isCur ? 'current' : ''}"><td>${l.getYear()}岁</td><td>${l.getAge()}岁</td><td><span class="gz">${gz}</span></td></tr>`;
+        return `<tr class="${isCur ? 'current' : ''}"><td>${l.getYear()}年</td><td>${l.getAge()}岁</td><td><span class="gz">${gz}</span></td></tr>`;
       }).join('');
       document.getElementById('lp-liunian').innerHTML =
         `<thead><tr><th>年份</th><th>虚岁</th><th>干支</th></tr></thead><tbody>${lnRows}</tbody>`;
 
-      // 流月表
       const lmRows = data.liuyue.map(l => {
         const gz = l.getGanZhi();
         const isCur = gz === data.currentLiuYue;
@@ -272,11 +368,10 @@ const base = import.meta.env.BASE_URL;
       document.getElementById('lp-liuyue').innerHTML =
         `<thead><tr><th>月份</th><th>干支</th></tr></thead><tbody>${lmRows}</tbody>`;
 
-      // 流日表（从今天起 30 天）
-      const today = new Date();
+      const tDate = new Date(targetSolar.getYear(), targetSolar.getMonth() - 1, targetSolar.getDay());
       let ldRows = '';
-      for (let i = 0; i < 30; i++) {
-        const dt = new Date(today); dt.setDate(today.getDate() + i);
+      for (let i = -15; i <= 15; i++) {
+        const dt = new Date(tDate); dt.setDate(tDate.getDate() + i);
         const s = Solar.fromYmd(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
         const l = Lunar.fromSolar(s);
         const gz = l.getEightChar().getDay();
@@ -286,10 +381,9 @@ const base = import.meta.env.BASE_URL;
       document.getElementById('lp-liuri').innerHTML =
         `<thead><tr><th>日期</th><th>干支</th></tr></thead><tbody>${ldRows}</tbody>`;
 
-      // 流时表（今天 12 时辰）
       let lsRows = '';
       for (let i = 0; i < 12; i++) {
-        const s = Solar.fromYmdHms(today.getFullYear(), today.getMonth()+1, today.getDate(), i*2, 0, 0);
+        const s = Solar.fromYmdHms(targetSolar.getYear(), targetSolar.getMonth(), targetSolar.getDay(), i*2, 0, 0);
         const l = Lunar.fromSolar(s);
         const gz = l.getEightChar().getTime();
         lsRows += `<tr><td>${TIME_LABEL[i]}时</td><td>${ZHI_TIME[i]}时</td><td><span class="gz">${gz}</span></td></tr>`;
@@ -297,19 +391,21 @@ const base = import.meta.env.BASE_URL;
       document.getElementById('lp-liushi').innerHTML =
         `<thead><tr><th>时段</th><th>时辰</th><th>干支</th></tr></thead><tbody>${lsRows}</tbody>`;
 
-      // 简单作用关系提示
       const natalGan = data.day[0];
       const natalZhi = data.day[1];
       const dyZhi = data.currentDaYun[1];
       const lyZhi = data.currentLiuNian[1];
       document.getElementById('lp-relations').innerHTML =
         `<div class="relation-row"><span class="relation-pill">日主天干：${natalGan}</span><span class="relation-pill">日支：${natalZhi}</span><span class="relation-pill">大运地支：${dyZhi}</span><span class="relation-pill">流年地支：${lyZhi}</span></div>` +
-        `<p style="font-size:13px;color:var(--muted)">注：藏干与刑冲合害的精细作用关系可在此基础上扩展；当前为简化展示。</p>`;
+        `<p style="font-size:13px;color:var(--muted)">注：藏干与刑冲合害会合的精细作用关系可在此基础上扩展；当前为简化展示。</p>`;
     }
 
     document.getElementById('lp-btn').addEventListener('click', render);
 
+    const now = new Date();
     setupDate('lp', 1990, 6, 15);
     setupTime('lp', 12, 0);
+    setupDate('tg', now.getFullYear(), now.getMonth() + 1, now.getDate());
+    setupTime('tg', now.getHours(), now.getMinutes());
   </script>
 </BlogPost>
