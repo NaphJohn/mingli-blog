@@ -140,6 +140,7 @@ const base = import.meta.env.BASE_URL;
   </style>
 
   <script is:inline src={`${base}lunar.js`}></script>
+  <script is:inline src={`${base}paywall.js`}></script>
   <script is:inline>
     const ZHI_CANG = {
       '子': '癸', '丑': '己癸辛', '寅': '甲丙戊', '卯': '乙', '辰': '戊乙癸', '巳': '丙戊庚',
@@ -466,7 +467,19 @@ const base = import.meta.env.BASE_URL;
       document.getElementById('lp-relations').innerHTML = computeRelations(relList);
     }
 
-    document.getElementById('lp-btn').addEventListener('click', render);
+    document.getElementById('lp-btn').addEventListener('click', function () {
+      const lunarTag = document.querySelector('script[src$="lunar.js"]');
+      const base = (lunarTag && lunarTag.src.match(/(.*\/)lunar\.js$/)) ? RegExp.$1 : '/';
+      if (window.MingLiPay && !MingLiPay.isUnlocked()) {
+        MingLiPay.showPayModal({
+          qrWechat: base + 'reward/wechat.png',
+          qrAlipay: base + 'reward/alipay.png',
+          minTip: 1
+        }, function () { render(); });
+        return;
+      }
+      render();
+    });
 
     const now = new Date();
     setupDate('lp', 1990, 6, 15);

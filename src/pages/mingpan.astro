@@ -1,0 +1,362 @@
+---
+import BlogPost from '../layouts/BlogPost.astro';
+const base = import.meta.env.BASE_URL;
+---
+
+<BlogPost title="命盘" description="输入生辰与性别，排出四柱、十神格局、五行强弱、日主强弱与大运趋势，生成一份可阅读的八字命盘解读。" lang="zh" altLang="English" altHref="/en/mingpan">
+  <p class="lead">输入你的出生年月日时与性别，排出四柱、十神格局、五行强弱、日主强弱与大运趋势，并生成一份可读的命盘解读。</p>
+  <p class="disclaimer">⚠️ 本页内容仅供娱乐与文化了解，不构成任何人生、投资或健康建议。</p>
+
+  <section class="tool-card">
+    <h2>📝 输入生辰</h2>
+    <div class="tool-form">
+      <label class="date-label">出生日期
+        <span class="date-selects">
+          <select id="mp-year"></select><i>年</i>
+          <select id="mp-month"></select><i>月</i>
+          <select id="mp-day"></select><i>日</i>
+        </span>
+      </label>
+      <label class="date-label">出生时间
+        <span class="time-selects">
+          <select id="mp-hour"></select><i>时</i>
+          <select id="mp-min"></select><i>分</i>
+        </span>
+      </label>
+      <label>性别
+        <select id="mp-gender">
+          <option value="1">男</option>
+          <option value="2">女</option>
+        </select>
+      </label>
+      <button id="mp-btn" class="tool-btn" type="button">排命盘</button>
+    </div>
+  </section>
+
+  <div id="mp-result" hidden>
+    <section class="tool-card chart-card">
+      <h2>🧭 四柱总览</h2>
+      <div id="mp-summary"></div>
+      <div class="table-wrap">
+        <table class="mp-table" id="mp-pillars">
+          <thead><tr><th></th><th>年柱</th><th>月柱</th><th>日柱</th><th>时柱</th></tr></thead>
+          <tbody>
+            <tr><th>干支</th><td id="mp-y-gz"></td><td id="mp-m-gz"></td><td id="mp-d-gz"></td><td id="mp-h-gz"></td></tr>
+            <tr><th>十神</th><td id="mp-y-ss"></td><td id="mp-m-ss"></td><td id="mp-d-ss"></td><td id="mp-h-ss"></td></tr>
+            <tr><th>五行</th><td id="mp-y-wx"></td><td id="mp-m-wx"></td><td id="mp-d-wx"></td><td id="mp-h-wx"></td></tr>
+            <tr><th>纳音</th><td id="mp-y-ny"></td><td id="mp-m-ny"></td><td id="mp-d-ny"></td><td id="mp-h-ny"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="tool-card">
+      <h2>🌡️ 五行强弱</h2>
+      <div id="mp-wuxing"></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>💪 日主强弱</h2>
+      <div id="mp-strength"></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>🧩 十神格局</h2>
+      <div id="mp-pattern"></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>🌊 大运趋势</h2>
+      <div id="mp-dayun"></div>
+    </section>
+
+    <section class="tool-card">
+      <h2>📜 综合解读</h2>
+      <div id="mp-read"></div>
+    </section>
+  </div>
+
+  <p style="margin-top: 24px;"><a href={`${base}tools`}>← 返回命理工具箱</a></p>
+
+  <style>
+    .lead { color: var(--muted); font-size: 16px; }
+    .disclaimer { background: var(--code-bg); border: 1px dashed var(--border); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: var(--muted); }
+    .tool-card { border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin: 20px 0; background: var(--bg); }
+    .tool-card h2 { margin-top: 0; border-left: 4px solid var(--accent); padding-left: 10px; }
+    .chart-card { padding: 0; overflow: hidden; }
+    .chart-card h2 { margin: 18px 20px 0; }
+    .chart-card #mp-summary { margin: 8px 20px 12px; }
+    .tool-form { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 10px; }
+    .tool-form label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
+    .tool-form select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
+    .date-label { font-size: 14px; color: var(--fg); display: flex; flex-direction: column; gap: 4px; }
+    .date-selects, .time-selects { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .date-selects select, .time-selects select { padding: 8px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; }
+    .date-selects i, .time-selects i { font-style: normal; color: var(--muted); font-size: 14px; }
+    .tool-btn { padding: 9px 18px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform .15s, opacity .15s; }
+    .tool-btn:hover { transform: translateY(-1px); opacity: .92; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 0 20px 20px; }
+    .mp-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+    .mp-table th, .mp-table td { border: 1px solid var(--border); padding: 8px 5px; text-align: center; }
+    .mp-table thead th { background: var(--code-bg); color: var(--muted); font-size: 13px; }
+    .mp-table tbody th { background: var(--code-bg); color: var(--muted); font-size: 13px; }
+    .gz { font-size: 18px; font-weight: 700; color: var(--accent); }
+    .ss { font-size: 13px; font-weight: 600; }
+    .wx { font-size: 12px; color: var(--muted); }
+    .ny { font-size: 11px; color: var(--muted); }
+    .wx-bar { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 14px; }
+    .wx-bar .wx-name { width: 28px; color: var(--fg); }
+    .wx-bar .wx-track { flex: 1; height: 14px; background: var(--code-bg); border-radius: 999px; overflow: hidden; }
+    .wx-bar .wx-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+    .wx-bar .wx-val { width: 28px; text-align: right; color: var(--muted); font-size: 13px; }
+    .mp-read p { line-height: 1.85; margin: 8px 0; }
+    .mp-read b { color: var(--accent); }
+    .mp-tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: rgba(124,92,255,0.12); color: var(--accent); margin-right: 6px; }
+  </style>
+
+  <script is:inline src={`${base}lunar.js`}></script>
+  <script is:inline src={`${base}paywall.js`}></script>
+  <script is:inline>
+    const ZHI_CANG = {
+      '子': '癸', '丑': '己癸辛', '寅': '甲丙戊', '卯': '乙', '辰': '戊乙癸', '巳': '丙戊庚',
+      '午': '丁己', '未': '己丁乙', '申': '庚壬戊', '酉': '辛', '戌': '戊辛丁', '亥': '壬甲'
+    };
+    const GAN_WUXING = {甲:'木',乙:'木',丙:'火',丁:'火',戊:'土',己:'土',庚:'金',辛:'金',壬:'水',癸:'水'};
+    const GAN_YINYANG = {甲:'阳',乙:'阴',丙:'阳',丁:'阴',戊:'阳',己:'阴',庚:'阳',辛:'阴',壬:'阳',癸:'阴'};
+    const WUXING_SHENG = {木:'火',火:'土',土:'金',金:'水',水:'木'};
+    const WUXING_KE = {木:'土',土:'水',水:'火',火:'金',金:'木'};
+    const NAYIN = {
+      '甲子':'海中金','乙丑':'海中金','丙寅':'炉中火','丁卯':'炉中火','戊辰':'大林木','己巳':'大林木',
+      '庚午':'路旁土','辛未':'路旁土','壬申':'剑锋金','癸酉':'剑锋金','甲戌':'山头火','乙亥':'山头火',
+      '丙子':'涧下水','丁丑':'涧下水','戊寅':'城头土','己卯':'城头土','庚辰':'白蜡金','辛巳':'白蜡金',
+      '壬午':'杨柳木','癸未':'杨柳木','甲申':'泉中水','乙酉':'泉中水','丙戌':'屋上土','丁亥':'屋上土',
+      '戊子':'霹雳火','己丑':'霹雳火','庚寅':'松柏木','辛卯':'松柏木','壬辰':'长流水','癸巳':'长流水',
+      '甲午':'沙中金','乙未':'沙中金','丙申':'山下火','丁酉':'山下火','戊戌':'平地木','己亥':'平地木',
+      '庚子':'壁上土','辛丑':'壁上土','壬寅':'金箔金','癸卯':'金箔金','甲辰':'覆灯火','乙巳':'覆灯火',
+      '丙午':'天河水','丁未':'天河水','戊申':'大驿土','己酉':'大驿土','庚戌':'钗钏金','辛亥':'钗钏金',
+      '壬子':'桑柘木','癸丑':'桑柘木','甲寅':'大溪水','乙卯':'大溪水','丙辰':'沙中土','丁巳':'沙中土',
+      '戊午':'天上火','己未':'天上火','庚申':'石榴木','辛酉':'石榴木','壬戌':'大海水','癸亥':'大海水'
+    };
+
+    const WX_ORDER = ['木','火','土','金','水'];
+    const WX_COLOR = {木:'#3aa76d',火:'#e0533d',土:'#c79a4b',金:'#b0b6bd',水:'#3d7fe0'};
+
+    function shiShen(dayGan, targetGan) {
+      if (dayGan === targetGan) return '日主';
+      const dw = GAN_WUXING[dayGan], tw = GAN_WUXING[targetGan];
+      const dy = GAN_YINYANG[dayGan], ty = GAN_YINYANG[targetGan];
+      const same = dy === ty;
+      if (dw === tw) return same ? '比肩' : '劫财';
+      if (WUXING_SHENG[dw] === tw) return same ? '食神' : '伤官';
+      if (WUXING_KE[dw] === tw) return same ? '偏财' : '正财';
+      if (WUXING_SHENG[tw] === dw) return same ? '偏印' : '正印';
+      if (WUXING_KE[tw] === dw) return same ? '七杀' : '正官';
+      return '';
+    }
+
+    const WX_NATURE = {
+      木: '仁厚、向上、有主见，喜舒展生长，就像树木向光而生。',
+      火: '热情、外向、表达力强，喜光亮温暖，像烛火照亮周遭。',
+      土: '诚信、包容、稳重，喜承载生养，像大地厚德载物。',
+      金: '刚毅、果决、讲原则，喜肃杀成器，像刀剑宁折不弯。',
+      水: '智慧、灵动、善变通，喜润下流通，像江河随势而行。'
+    };
+
+    function fillDayOptions(ySel, mSel, dSel, defD) {
+      const y = +ySel.value, m = +mSel.value;
+      const max = new Date(y, m, 0).getDate();
+      dSel.innerHTML = '';
+      for (let d = 1; d <= max; d++) {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d;
+        if (d === defD) o.selected = true;
+        dSel.appendChild(o);
+      }
+    }
+    function setupDate(prefix, defY, defM, defD) {
+      const ySel = document.getElementById(prefix + '-year');
+      const mSel = document.getElementById(prefix + '-month');
+      const dSel = document.getElementById(prefix + '-day');
+      const START = 1920, END = 2035;
+      if (!ySel || !mSel || !dSel) return;
+      for (let y = END; y >= START; y--) { const o = document.createElement('option'); o.value = y; o.textContent = y; if (y === defY) o.selected = true; ySel.appendChild(o); }
+      for (let m = 1; m <= 12; m++) { const o = document.createElement('option'); o.value = m; o.textContent = m; if (m === defM) o.selected = true; mSel.appendChild(o); }
+      fillDayOptions(ySel, mSel, dSel, defD);
+      ySel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, +dSel.value || 1));
+      mSel.addEventListener('change', () => fillDayOptions(ySel, mSel, dSel, +dSel.value || 1));
+    }
+    function readDate(prefix) {
+      const y = +document.getElementById(prefix + '-year').value;
+      const m = +document.getElementById(prefix + '-month').value;
+      const d = +document.getElementById(prefix + '-day').value;
+      if (!y || !m || !d) return null;
+      return { y, m, d };
+    }
+    function setupTime(prefix, defH, defM) {
+      const hSel = document.getElementById(prefix + '-hour');
+      const mSel = document.getElementById(prefix + '-min');
+      if (!hSel || !mSel) return;
+      for (let h = 0; h < 24; h++) { const o = document.createElement('option'); o.value = h; o.textContent = h; if (h === defH) o.selected = true; hSel.appendChild(o); }
+      for (let m = 0; m < 60; m++) { const o = document.createElement('option'); o.value = String(m).padStart(2,'0'); o.textContent = String(m).padStart(2,'0'); if (m === defM) o.selected = true; mSel.appendChild(o); }
+    }
+    function readTime(prefix) {
+      const h = +document.getElementById(prefix + '-hour').value;
+      const m = +document.getElementById(prefix + '-min').value;
+      return { h, m };
+    }
+
+    function computeWuxing(pillars, dayGan) {
+      // pillars: [{gan, zhi}] 年/月/日/时；五行统计用 天干 + 地支本气
+      const count = {木:0,火:0,土:0,金:0,水:0};
+      pillars.forEach(p => {
+        count[GAN_WUXING[p.gan]] += 1;
+        const benqi = ZHI_CANG[p.zhi][0];
+        count[GAN_WUXING[benqi]] += 1;
+      });
+      return count;
+    }
+
+    function strengthScore(pillars, dayGan, dayZhi) {
+      const dwx = GAN_WUXING[dayGan];
+      let score = 0;
+      // 得令：月支本气五行 == 日主五行 +2；月支藏干含日主五行 +1
+      const monthZhi = pillars[1].zhi;
+      const mb = ZHI_CANG[monthZhi];
+      if (GAN_WUXING[mb[0]] === dwx) score += 2;
+      else if (mb.includes(GAN_WUXING[dwx === '木' ? '甲' : dwx === '火' ? '丙' : dwx === '土' ? '戊' : dwx === '金' ? '庚' : '壬'])) score += 1;
+      // 得地：四柱地支本气含日主五行
+      pillars.forEach(p => { if (GAN_WUXING[ZHI_CANG[p.zhi][0]] === dwx) score += 1; });
+      // 得生（印）/得助（比劫）：看各柱天干十神
+      pillars.forEach(p => {
+        const ss = shiShen(dayGan, p.gan);
+        if (ss === '正印' || ss === '偏印') score += 1;
+        if (ss === '比肩' || ss === '劫财') score += 1;
+      });
+      return score;
+    }
+
+    function render() {
+      const p = readDate('mp');
+      if (!p) { alert('请选择出生日期'); return; }
+      const { h: hh, m: mm } = readTime('mp');
+      const gender = +document.getElementById('mp-gender').value;
+      const solar = Solar.fromYmdHms(p.y, p.m, p.d, hh, mm, 0);
+      const lunar = Lunar.fromSolar(solar);
+      const ec = lunar.getEightChar();
+      const yGZ = ec.getYear(), mGZ = ec.getMonth(), dGZ = ec.getDay(), tGZ = ec.getTime();
+      const dayGan = dGZ[0], dayZhi = dGZ[1];
+
+      const pillars = [
+        { label: '年', gan: yGZ[0], zhi: yGZ[1] },
+        { label: '月', gan: mGZ[0], zhi: mGZ[1] },
+        { label: '日', gan: dGZ[0], zhi: dGZ[1] },
+        { label: '时', gan: tGZ[0], zhi: tGZ[1] }
+      ];
+
+      document.getElementById('mp-result').hidden = false;
+      document.getElementById('mp-summary').innerHTML =
+        `<p><b>${p.y}年${p.m}月${p.d}日 ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}</b> · ${gender === 1 ? '男' : '女'}命 · 日主 <span class="gz">${dayGan}${dayZhi}</span></p>`;
+
+      const gzIds = ['mp-y', 'mp-m', 'mp-d', 'mp-h'];
+      pillars.forEach((pl, i) => {
+        const id = gzIds[i];
+        const ss = shiShen(dayGan, pl.gan);
+        document.getElementById(id + '-gz').innerHTML = `<span class="gz">${pl.gan}${pl.zhi}</span>`;
+        document.getElementById(id + '-ss').innerHTML = `<span class="ss">${ss}</span>`;
+        document.getElementById(id + '-wx').innerHTML = `<span class="wx">${GAN_WUXING[pl.gan]}${GAN_WUXING[ZHI_CANG[pl.zhi][0]]}</span>`;
+        document.getElementById(id + '-ny').innerHTML = `<span class="ny">${NAYIN[pl.gan + pl.zhi]}</span>`;
+      });
+
+      // 五行强弱
+      const wx = computeWuxing(pillars, dayGan);
+      const maxWx = Math.max(...WX_ORDER.map(k => wx[k]), 1);
+      const wxHtml = WX_ORDER.map(k =>
+        `<div class="wx-bar"><span class="wx-name">${k}</span>` +
+        `<span class="wx-track"><span class="wx-fill" style="width:${Math.round(wx[k] / maxWx * 100)}%;background:${WX_COLOR[k]}"></span></span>` +
+        `<span class="wx-val">${wx[k]}</span></div>`
+      ).join('');
+      document.getElementById('mp-wuxing').innerHTML = wxHtml +
+        `<p style="font-size:13px;color:var(--muted);margin-top:10px">五行统计含四柱天干与地支本气（各计 1 分），数值高者为该命局偏旺的五行。</p>`;
+
+      // 日主强弱
+      const score = strengthScore(pillars, dayGan, dayZhi);
+      let level, tip;
+      if (score >= 7) { level = '身强'; tip = '日主得令、得地、得生助较多，主观能动强，宜用克、泄、耗（财、官、食伤）来平衡，过强则需适当约制。'; }
+      else if (score <= 4) { level = '身弱'; tip = '日主得令、得地、得生助偏少，宜用生、扶（印、比劫）来增强自身，遇事可借团队与长辈之力。'; }
+      else { level = '中和'; tip = '日主强弱相对均衡，适应性好，用神取舍较灵活，顺境逆境都能接住。'; }
+      document.getElementById('mp-strength').innerHTML =
+        `<p>强弱评分：<b>${score}</b> ／ 10　→　<span class="mp-tag">${level}</span></p>` +
+        `<p style="font-size:14px;color:var(--fg)">${tip}</p>`;
+
+      // 十神格局
+      const ssList = pillars.map(pl => shiShen(dayGan, pl.gan)).filter(s => s && s !== '日主');
+      const tally = {};
+      ssList.forEach(s => { tally[s] = (tally[s] || 0) + 1; });
+      const sorted = Object.entries(tally).sort((a, b) => b[1] - a[1]);
+      const monthSS = shiShen(dayGan, mGZ[0]);
+      const topSS = sorted.length ? sorted[0][0] : '—';
+      const patternText = monthSS !== '日主'
+        ? `以<b>月令（月柱天干 ${mGZ[0]}）十神「${monthSS}」</b>为格局核心，整体十神分布以「${topSS}」最显。`
+        : `月柱天干与日主同气，格局以日主自身气势为主，配合地支定旺衰。`;
+      document.getElementById('mp-pattern').innerHTML =
+        `<p>${patternText}</p>` +
+        `<p style="font-size:13px;color:var(--muted)">十神统计：${sorted.map(([k, v]) => `${k}×${v}`).join('，') || '—'}</p>` +
+        `<p style="font-size:13px;color:var(--muted)">十神即四柱天干对日主的关系：比劫主同辈助力，食伤主才华表达，财主资源，官杀主约束事业，印主学识庇护。</p>`;
+
+      // 大运趋势
+      const yun = ec.getYun(gender);
+      const startAge = yun.getStartAge();
+      const dayun = yun.getDaYun();
+      const curYear = new Date().getFullYear();
+      let cur = dayun.slice(1).find(d => {
+        const s = d.getStartYear();
+        const idx = dayun.indexOf(d);
+        const e = idx < dayun.length - 1 ? dayun[idx + 1].getStartYear() : s + 10;
+        return curYear >= s && curYear < e;
+      }) || dayun[dayun.length - 1];
+      const curGZ = cur.getGanZhi();
+      const curSS = shiShen(dayGan, curGZ[0]);
+      const dyRows = dayun.slice(1).map(d => {
+        const gz = d.getGanZhi();
+        const s = d.getStartYear();
+        const a = d.getStartAge();
+        const isCur = gz === curGZ;
+        return `<tr class="${isCur ? 'current' : ''}"><td>${s}–${s + 9}</td><td>${a}–${a + 9}岁</td><td><span class="gz">${gz}</span></td><td>${shiShen(dayGan, gz[0])}</td></tr>`;
+      }).join('');
+      document.getElementById('mp-dayun').innerHTML =
+        `<p>起运：约 <b>${startAge}</b> 岁（${startAge % 2 === 0 ? '顺' : '逆'}排大运，阳年男 / 阴年女顺排）。</p>` +
+        `<p>当前大运：<span class="mp-tag">${curGZ}</span> 十神「${curSS}」——${curSS === '正财' || curSS === '偏财' ? '利资源积累与务实经营' : curSS === '正官' || curSS === '七杀' ? '事业上有压力也有舞台，宜扛事立信' : curSS === '食神' || curSS === '伤官' ? '才华与表达易被看见，利创作输出' : curSS === '正印' || curSS === '偏印' ? '利学习、沉淀与长辈贵人' : curSS === '比肩' || curSS === '劫财' ? '人际协作多，宜借力同行' : '平稳过渡' }。</p>` +
+        `<div class="table-wrap" style="padding:0"><table class="mp-table"><thead><tr><th>年份</th><th>岁数</th><th>干支</th><th>十神</th></tr></thead><tbody>${dyRows}</tbody></table></div>`;
+
+      // 综合解读（娱乐向，规则生成）
+      const dwx = GAN_WUXING[dayGan];
+      const strengthWord = level === '身强' ? '底气足、敢争取' : level === '身弱' ? '更需借势与沉淀' : '进退有度';
+      document.getElementById('mp-read').innerHTML =
+        `<p><span class="mp-tag">${dwx}日主</span> 你天生${WX_NATURE[dwx]}日主${strengthWord}，是本命局的底色。</p>` +
+        `<p><b>性格：</b>${WX_NATURE[dwx]}五行${dwx}偏${wx[dwx] >= 3 ? '旺' : '平'}，行事带有 ${dwx} 的天然气质；强弱为「${level}」，意味着${tip}</p>` +
+        `<p><b>事业：</b>月令格局核心为「${monthSS}」，主${monthSS === '正官' || monthSS === '七杀' ? '规则、管理与担当' : monthSS === '正财' || monthSS === '偏财' ? '务实经营与资源运作' : monthSS === '食神' || monthSS === '伤官' ? '创意、表达与手艺' : monthSS === '正印' || monthSS === '偏印' ? '学习、研究与专业壁垒' : monthSS === '比肩' || monthSS === '劫财' ? '协作、合伙与人脉' : '综合打磨'}；当前大运「${curGZ}（${curSS}）」为其加注。</p>` +
+        `<p><b>财运：</b>命局财星（正财/偏财）出现 ${ssList.filter(s => s === '正财' || s === '偏财').length} 次，偏${ssList.includes('偏财') ? '利灵活外财与机会型收益' : '以稳定劳动所得为主'}；结合当前大运十神看流年机会更准。</p>` +
+        `<p><b>感情：</b>男命以财星为妻星、女命以官杀为夫星；本局 ${gender === 1 ? '财星' : '官杀'} 显隐影响相处模式，整体以「${topSS}」气质为底色，宜找能互补你五行短板的人。</p>` +
+        `<p><b>健康：</b>五行中 ${WX_ORDER.slice().sort((a, b) => wx[a] - wx[b])[0]} 偏弱，对应脏腑可多留意（木肝、火心、土脾胃、金肺、水肾）；此为娱乐类比，健康请务必以医学检查为准。</p>` +
+        `<p style="font-size:13px;color:var(--muted)">以上解读由规则模板依据干支、十神、五行推演生成，仅供文化娱乐；人生选择请以现实与专业意见为准。</p>`;
+    }
+
+    document.getElementById('mp-btn').addEventListener('click', function () {
+      const lunarTag = document.querySelector('script[src$="lunar.js"]');
+      const base = (lunarTag && lunarTag.src.match(/(.*\/)lunar\.js$/)) ? RegExp.$1 : '/';
+      if (window.MingLiPay && !MingLiPay.isUnlocked()) {
+        MingLiPay.showPayModal({
+          qrWechat: base + 'reward/wechat.png',
+          qrAlipay: base + 'reward/alipay.png',
+          minTip: 1
+        }, function () { render(); });
+        return;
+      }
+      render();
+    });
+
+    const now = new Date();
+    setupDate('mp', 1990, 6, 15);
+    setupTime('mp', 12, 0);
+  </script>
+</BlogPost>

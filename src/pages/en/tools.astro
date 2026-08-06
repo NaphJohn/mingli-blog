@@ -4,7 +4,7 @@ const base = import.meta.env.BASE_URL;
 ---
 
 <BlogPost title="Divination Toolkit" description="Birth date → zodiac · couple synastry · birth calendar · time-progression chart" lang="en" altLang="中文" altHref="/tools">
-  <p class="lead">Four client-side mini tools, ready to use: find your Sun sign, score a couple's compatibility, cast the four birth pillars, and generate a dynamic time-progression chart.</p>
+  <p class="lead">Five client-side mini tools, ready to use: find your Sun sign, score a couple's compatibility, cast the four birth pillars, generate a dynamic time-progression chart, and read a deep Bazi natal chart.</p>
   <p class="disclaimer">⚠️ For entertainment and cultural curiosity only — not life, financial, or health advice.</p>
 
   <section class="tool-card">
@@ -74,6 +74,16 @@ const base = import.meta.env.BASE_URL;
     <div class="tool-form">
       <a class="tool-btn" href={`${base}en/liupan`} id="lp-link">Open chart</a>
     </div>
+    <p class="tool-note">💝 A tip is required before casting (min ¥1, no upper limit); the author is exempt.</p>
+  </section>
+
+  <section class="tool-card">
+    <h2>🧭 Natal Chart</h2>
+    <p>Enter your birth details and gender for a deep Bazi reading: four-pillar overview, Five-Element strength, Day-Master score, Ten Gods pattern, Da Yun trend, plus a synthesized read on character, career, wealth, love and health.</p>
+    <div class="tool-form">
+      <a class="tool-btn" href={`${base}en/mingpan`} id="mp-link">Open chart</a>
+    </div>
+    <p class="tool-note">💝 A tip is required before reading (min ¥1, no upper limit); the author is exempt.</p>
   </section>
 
   <style>
@@ -90,6 +100,7 @@ const base = import.meta.env.BASE_URL;
     .date-selects i, .time-selects i { font-style: normal; color: var(--muted); font-size: 14px; }
     .tool-btn { padding: 9px 18px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; cursor: pointer; font-size: 14px; transition: transform .15s, opacity .15s; }
     .tool-btn:hover { transform: translateY(-1px); opacity: .92; }
+    .tool-note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
     .tool-result { margin-top: 16px; padding: 16px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); line-height: 1.8; }
     .tool-result h3 { margin: 0 0 8px; font-size: 20px; }
     .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: rgba(124,92,255,0.12); color: var(--accent); margin-right: 6px; }
