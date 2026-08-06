@@ -1,7 +1,11 @@
 /* 命理博客 · 打赏 / 付费墙（vendored 经典脚本，全局挂 window.MingLiPay）
- * - 打赏金额：最低 ¥1，无上限
- * - 解锁：localStorage 记录；作者本人用 ?author=1 或 localStorage ml_author=1 免付费
- * - 复用 public/reward/wechat.png + alipay.png 收款码
+ * 重要说明（纯静态站点的根本限制）：
+ *   本博客托管于 GitHub Pages，无后端、无支付回调，无法真正校验微信/支付宝是否付款。
+ *   因此付费墙为「软门槛」——读者扫码打赏后，须输入作者私发的「解锁码」才解锁查看。
+ *   此机制可挡住随手白嫖，但懂技术者仍可能逆向；要做到「不付绝对看不到」需后端支付回调。
+ * - 解锁码：调用方通过 cfg.unlockCode 传入（base64 编码，避免明文暴露）。
+ * - 作者本人用 ?author=1 或 localStorage ml_author=1 免付费。
+ * - 复用 public/reward/wechat.png + alipay.png 收款码。
  */
 window.MingLiPay = (function () {
   var KEY = 'ml_paid_v1';
@@ -52,6 +56,7 @@ window.MingLiPay = (function () {
   function showPayModal(cfg, onUnlock) {
     cfg = cfg || {};
     var minTip = cfg.minTip || 1;
+    var codeB64 = cfg.unlockCode || '';   // base64 编码的期望解锁码
     ensureStyle();
     var overlay = document.getElementById('ml-pay-overlay');
     if (!overlay) {
@@ -62,16 +67,16 @@ window.MingLiPay = (function () {
         '<div class="ml-pay-modal" role="dialog" aria-modal="true">' +
           '<button class="ml-pay-close" id="ml-pay-close" type="button" aria-label="关闭">×</button>' +
           '<h3>🔓 解锁命理解读</h3>' +
-          '<p class="ml-pay-desc">本解读为付费内容。打赏 <b>¥' + minTip + ' 起（金额不限）</b> 即可解锁查看，也算是对作者的小小支持 ☕</p>' +
-          '<label class="ml-pay-amount-label">打赏金额（元）' +
-            '<input id="ml-pay-amount" type="number" min="' + minTip + '" step="1" value="' + minTip + '" />' +
+          '<p class="ml-pay-desc">本解读为付费内容。扫码打赏 <b>¥' + minTip + ' 起（金额不限）</b> 后，请输入作者私发的解锁码查看（作者本人免付费）。</p>' +
+          '<label class="ml-pay-amount-label">解锁码' +
+            '<input id="ml-pay-code" type="text" placeholder="请输入解锁码" autocomplete="off" />' +
           '</label>' +
           '<div class="ml-pay-qrs">' +
             '<div class="ml-pay-qr"><div class="ml-pay-qr-img"><img id="ml-pay-wx" alt="微信收款码" /></div><p>微信</p></div>' +
             '<div class="ml-pay-qr"><div class="ml-pay-qr-img"><img id="ml-pay-ali" alt="支付宝收款码" /></div><p>支付宝</p></div>' +
           '</div>' +
-          '<p class="ml-pay-qr-tip">扫码支付后点击下方按钮即可查看解读（作者本人免付费）。</p>' +
-          '<button class="ml-pay-confirm" id="ml-pay-confirm" type="button">我已完成支付，查看解读</button>' +
+          '<p class="ml-pay-qr-tip">扫码支付后，凭作者发送的解锁码在此输入即可查看解读。</p>' +
+          '<button class="ml-pay-confirm" id="ml-pay-unlock" type="button">输入解锁码，查看解读</button>' +
         '</div>';
       document.body.appendChild(overlay);
     }
@@ -79,15 +84,19 @@ window.MingLiPay = (function () {
     var ali = overlay.querySelector('#ml-pay-ali');
     if (wx && cfg.qrWechat) wx.src = cfg.qrWechat;
     if (ali && cfg.qrAlipay) ali.src = cfg.qrAlipay;
-    var amount = overlay.querySelector('#ml-pay-amount');
-    amount.value = minTip;
 
-    overlay.querySelector('#ml-pay-confirm').onclick = function () {
-      var v = parseFloat(amount.value);
-      if (!(v >= minTip)) { alert('打赏金额至少为 ¥' + minTip); return; }
-      unlock();
-      overlay.style.display = 'none';
-      if (typeof onUnlock === 'function') onUnlock();
+    overlay.querySelector('#ml-pay-unlock').onclick = function () {
+      var input = (overlay.querySelector('#ml-pay-code').value || '').trim();
+      if (!input) { alert('请输入解锁码'); return; }
+      var expected = '';
+      try { expected = atob(codeB64); } catch (e) { expected = ''; }
+      if (expected && input.toLowerCase() === expected.toLowerCase()) {
+        unlock();
+        overlay.style.display = 'none';
+        if (typeof onUnlock === 'function') onUnlock();
+      } else {
+        alert('解锁码不正确，请确认是否已打赏并向作者索取解锁码。');
+      }
     };
     overlay.querySelector('#ml-pay-close').onclick = function () { overlay.style.display = 'none'; };
     overlay.onclick = function (e) { if (e.target === overlay) overlay.style.display = 'none'; };

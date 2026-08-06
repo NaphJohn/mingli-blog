@@ -348,7 +348,8 @@ const base = import.meta.env.BASE_URL;
         MingLiPay.showPayModal({
           qrWechat: base + 'reward/wechat.png',
           qrAlipay: base + 'reward/alipay.png',
-          minTip: 1
+          minTip: 1,
+          unlockCode: btoa('mingli2026')
         }, function () { render(); });
         return;
       }
