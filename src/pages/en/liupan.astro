@@ -75,6 +75,16 @@ const base = import.meta.env.BASE_URL;
       <div id="lp-interp"></div>
     </section>
 
+    <section class="tool-card ai-card">
+      <h2>🤖 Let AI read your dynamic chart in plain English</h2>
+      <p class="ai-tip">Don't want to parse the stems, branches and currents yourself? Click "Copy prompt" below and paste it into any AI (ChatGPT / Doubao / Tongyi / DeepSeek). It will walk you through this exact dynamic chart in everyday language. Your chart data is already filled in.</p>
+      <textarea id="lp-prompt" class="prompt-box" readonly rows="11"></textarea>
+      <div class="ai-actions">
+        <button id="lp-copy" class="tool-btn" type="button">Copy prompt</button>
+        <span id="lp-copy-tip" class="copy-tip"></span>
+      </div>
+    </section>
+
     <section class="tool-card">
       <h2>🌊 Da Yun (Great Luck)</h2>
       <div class="table-wrap"><table class="lp-table" id="lp-dayun"></table></div>
@@ -151,6 +161,11 @@ const base = import.meta.env.BASE_URL;
     .interp-sec h4 { margin: 0 0 6px; font-size: 14px; color: var(--fg); border-left: 3px solid var(--accent); padding-left: 8px; }
     .interp-sec p { margin: 0; font-size: 14px; line-height: 1.8; color: var(--fg); }
     .interp-foot { font-size: 12px; color: var(--muted); margin-top: 14px; }
+    .ai-card { border-color: #7c5cff; }
+    .ai-tip { font-size: 13px; color: var(--muted); line-height: 1.7; margin: 8px 0 12px; }
+    .prompt-box { width: 100%; min-height: 200px; border: 1px solid var(--border); border-radius: 8px; background: var(--code-bg); color: var(--fg); font-size: 13px; line-height: 1.6; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
+    .ai-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+    .copy-tip { font-size: 13px; color: var(--accent); }
   </style>
 
   <script is:inline src={`${base}lunar.js`}></script>
@@ -576,6 +591,19 @@ const base = import.meta.env.BASE_URL;
 
       const interpEl = document.getElementById('lp-interp');
       if (interpEl) interpEl.innerHTML = interpret(data, dayGan, dayZhi);
+
+      const lpPrompt =
+        'You are a seasoned cultural researcher of Chinese metaphysics, well-versed in the Four Pillars (BaZi), the Great Luck (Da Yun) and the annual/monthly/daily/hourly currents (Liu Nian / Liu Yue / Liu Ri / Liu Shi). Explain this "dynamic chart" in plain, modern, easy-to-understand language.\n' +
+        '[Rules] Cultural, personality and psychological perspective for fun only; no scaremongering; no specific investment, medical or health advice; explain any technical term (strength/useful element, etc.) the first time you use it.\n\n' +
+        '[Subject] Day Master ' + dayGan + dayZhi + ' (' + GAN_WUXING[dayGan] + ')\n' +
+        '[Four Pillars] Year ' + data.year + ' / Month ' + data.month + ' / Day ' + data.day + ' / Hour ' + data.time + '\n' +
+        '[Current Great Luck] ' + data.currentDaYun + '\n' +
+        '[Liu Nian] ' + data.currentLiuNian + '  [Liu Yue] ' + data.currentLiuYue + '  [Liu Ri] ' + data.currentLiuRi + '  [Liu Shi] ' + data.currentLiuShi + '\n\n' +
+        '[Please explain in this structure]\n' +
+        '1. The feel of the current Great Luck... 2. This year (Liu Nian) focus... 3. This month (Liu Yue) rhythm... 4. Today (Liu Ri) and this hour (Liu Shi)... 5. One-line summary...\n' +
+        'Mark the whole answer "For entertainment only".';
+      const lpPromptEl = document.getElementById('lp-prompt');
+      if (lpPromptEl) lpPromptEl.value = lpPrompt;
     }
 
     document.getElementById('lp-btn').addEventListener('click', function () {
@@ -591,6 +619,21 @@ const base = import.meta.env.BASE_URL;
         return;
       }
       render();
+    });
+
+    const lpCopyBtn = document.getElementById('lp-copy');
+    if (lpCopyBtn) lpCopyBtn.addEventListener('click', function () {
+      const ta = document.getElementById('lp-prompt');
+      if (!ta) return;
+      ta.select();
+      try {
+        navigator.clipboard.writeText(ta.value);
+        document.getElementById('lp-copy-tip').textContent = 'Copied!';
+      } catch (e) {
+        document.execCommand('copy');
+        document.getElementById('lp-copy-tip').textContent = 'Copied!';
+      }
+      setTimeout(function () { document.getElementById('lp-copy-tip').textContent = ''; }, 2000);
     });
 
     const now = new Date();

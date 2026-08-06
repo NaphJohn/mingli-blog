@@ -75,6 +75,16 @@ const base = import.meta.env.BASE_URL;
       <div id="lp-interp"></div>
     </section>
 
+    <section class="tool-card ai-card">
+      <h2>🤖 让 AI 用大白话帮你读盘</h2>
+      <p class="ai-tip">不想自己啃干支？点下方「复制提示词」，粘到任意 AI（ChatGPT / 豆包 / 通义 / DeepSeek），它会用现代人大白话给你讲一遍这份动态命盘。提示词已自动填入你的排盘数据。</p>
+      <textarea id="lp-prompt" class="prompt-box" readonly rows="11"></textarea>
+      <div class="ai-actions">
+        <button id="lp-copy" class="tool-btn" type="button">复制提示词</button>
+        <span id="lp-copy-tip" class="copy-tip"></span>
+      </div>
+    </section>
+
     <section class="tool-card">
       <h2>🌊 大运</h2>
       <div class="table-wrap"><table class="lp-table" id="lp-dayun"></table></div>
@@ -151,6 +161,11 @@ const base = import.meta.env.BASE_URL;
     .interp-sec h4 { margin: 0 0 6px; font-size: 14px; color: var(--fg); border-left: 3px solid var(--accent); padding-left: 8px; }
     .interp-sec p { margin: 0; font-size: 14px; line-height: 1.8; color: var(--fg); }
     .interp-foot { font-size: 12px; color: var(--muted); margin-top: 14px; }
+    .ai-card { border-color: var(--accent); }
+    .ai-tip { font-size: 14px; color: var(--fg); line-height: 1.7; margin: 6px 0 14px; }
+    .prompt-box { width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--code-bg); color: var(--fg); font-size: 13px; line-height: 1.65; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .ai-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+    .copy-tip { font-size: 13px; color: var(--accent); }
   </style>
 
   <script is:inline src={`${base}lunar.js`}></script>
@@ -575,6 +590,24 @@ const base = import.meta.env.BASE_URL;
 
       const interpEl = document.getElementById('lp-interp');
       if (interpEl) interpEl.innerHTML = interpret(data, dayGan, dayZhi);
+
+      // AI 白话解读提示词（自动拼入本动态命盘数据）
+      const lpPrompt =
+        '你是一位资深命理文化研究者，精通八字（四柱）大运流年。请用现代人能听懂的大白话，解读下面这份「动态命盘」。\n' +
+        '【规则】只做文化、性格、心理视角的趣味解读；不做恐吓；不涉投资、医疗、健康具体建议；术语先解释。\n\n' +
+        '【命主】日主 ' + dayGan + dayZhi + '（' + GAN_WUXING[dayGan] + '）\n' +
+        '【四柱】年 ' + data.year + ' / 月 ' + data.month + ' / 日 ' + data.day + ' / 时 ' + data.time + '\n' +
+        '【当前大运】' + data.currentDaYun + '\n' +
+        '【流年】' + data.currentLiuNian + '　【流月】' + data.currentLiuYue + '　【流日】' + data.currentLiuRi + '　【流时】' + data.currentLiuShi + '\n\n' +
+        '【请按此结构解读】\n' +
+        '1. 当前大运气质：这十年整体氛围，对事业/人际/心态的影响。\n' +
+        '2. 今年（流年）重点：今年主题与机会点。\n' +
+        '3. 本月（流月）节奏：近一个月的节奏提示。\n' +
+        '4. 今日（流日）与此时（流时）：当下能量与注意点。\n' +
+        '5. 一句总结：用轻松的话概括当下运势底色。\n' +
+        '全文标注“仅供娱乐”。';
+      const lpPromptEl = document.getElementById('lp-prompt');
+      if (lpPromptEl) lpPromptEl.value = lpPrompt;
     }
 
     document.getElementById('lp-btn').addEventListener('click', function () {
@@ -590,6 +623,21 @@ const base = import.meta.env.BASE_URL;
         return;
       }
       render();
+    });
+
+    const lpCopyBtn = document.getElementById('lp-copy');
+    if (lpCopyBtn) lpCopyBtn.addEventListener('click', function () {
+      const ta = document.getElementById('lp-prompt');
+      if (!ta) return;
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).then(function () { ok = true; }).catch(function () {});
+      }
+      const tip = document.getElementById('lp-copy-tip');
+      if (tip) tip.textContent = ok ? '✅ 已复制，去 AI 里粘贴吧' : '请手动复制（Ctrl/Cmd+C）';
+      setTimeout(function () { if (tip) tip.textContent = ''; }, 3000);
     });
 
     const now = new Date();

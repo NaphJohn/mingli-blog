@@ -74,6 +74,16 @@ const base = import.meta.env.BASE_URL;
       <h2>📜 综合解读</h2>
       <div id="mp-read"></div>
     </section>
+
+    <section class="tool-card ai-card">
+      <h2>🤖 让 AI 用大白话帮你读盘</h2>
+      <p class="ai-tip">不想自己啃干支？点下方「复制提示词」，粘到任意 AI（ChatGPT / 豆包 / 通义 / DeepSeek），它会用现代人大白话给你讲一遍这份盘。提示词已自动填入你的排盘数据。</p>
+      <textarea id="mp-prompt" class="prompt-box" readonly rows="11"></textarea>
+      <div class="ai-actions">
+        <button id="mp-copy" class="tool-btn" type="button">复制提示词</button>
+        <span id="mp-copy-tip" class="copy-tip"></span>
+      </div>
+    </section>
   </div>
 
   <p style="margin-top: 24px;"><a href={`${base}tools`}>← 返回命理工具箱</a></p>
@@ -112,6 +122,11 @@ const base = import.meta.env.BASE_URL;
     .mp-read p { line-height: 1.85; margin: 8px 0; }
     .mp-read b { color: var(--accent); }
     .mp-tag { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: rgba(124,92,255,0.12); color: var(--accent); margin-right: 6px; }
+    .ai-card { border-color: var(--accent); }
+    .ai-tip { font-size: 14px; color: var(--fg); line-height: 1.7; margin: 6px 0 14px; }
+    .prompt-box { width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--code-bg); color: var(--fg); font-size: 13px; line-height: 1.65; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .ai-actions { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+    .copy-tip { font-size: 13px; color: var(--accent); }
   </style>
 
   <script is:inline src={`${base}lunar.js`}></script>
@@ -339,6 +354,29 @@ const base = import.meta.env.BASE_URL;
         `<p><b>感情：</b>男命以财星为妻星、女命以官杀为夫星；本局 ${gender === 1 ? '财星' : '官杀'} 显隐影响相处模式，整体以「${topSS}」气质为底色，宜找能互补你五行短板的人。</p>` +
         `<p><b>健康：</b>五行中 ${WX_ORDER.slice().sort((a, b) => wx[a] - wx[b])[0]} 偏弱，对应脏腑可多留意（木肝、火心、土脾胃、金肺、水肾）；此为娱乐类比，健康请务必以医学检查为准。</p>` +
         `<p style="font-size:13px;color:var(--muted)">以上解读由规则模板依据干支、十神、五行推演生成，仅供文化娱乐；人生选择请以现实与专业意见为准。</p>`;
+
+      // AI 白话解读提示词（自动拼入本命盘数据）
+      const promptText =
+        '你是一位资深命理文化研究者，精通八字（四柱），擅长用现代人能听懂的大白话讲解命局。\n' +
+        '【规则】只做文化、性格、心理视角的趣味解读；不做恐吓；不涉投资、医疗、健康具体建议；若用“旺衰/用神”等术语须先解释。\n\n' +
+        '【我的命盘数据】\n' +
+        '日主：' + dayGan + dayZhi + '（' + dwx + '）\n' +
+        '四柱：年 ' + yGZ + ' / 月 ' + mGZ + ' / 日 ' + dGZ + ' / 时 ' + tGZ + '\n' +
+        '十神：年 ' + shiShen(dayGan, yGZ[0]) + ' / 月 ' + monthSS + ' / 日 日主 / 时 ' + shiShen(dayGan, tGZ[0]) + '\n' +
+        '五行强弱（含本气）：木 ' + wx['木'] + ' / 火 ' + wx['火'] + ' / 土 ' + wx['土'] + ' / 金 ' + wx['金'] + ' / 水 ' + wx['水'] + '\n' +
+        '日主强弱：' + level + '（评分 ' + score + '/10）\n' +
+        '格局：' + patternText.replace(/<[^>]+>/g, '') + '\n' +
+        '当前大运：' + curGZ + '（' + curSS + '）\n\n' +
+        '【请按此结构用大白话解读】\n' +
+        '1. 性格底色：用生活化比喻说日主五行与强弱带来的气质、优势、盲点。\n' +
+        '2. 事业与财运：结合月令格局、财星显隐、当前大运给方向性参考（非具体决策）。\n' +
+        '3. 感情相处：从妻星/夫星与十神气质，说明相处模式与互补建议。\n' +
+        '4. 近两年节奏：结合大运与流年气质，提示节奏（不预言吉凶）。\n' +
+        '5. 一句话总结：轻松概括这份命局。\n' +
+        '全文标注“仅供娱乐”。';
+      const mpPromptEl = document.getElementById('mp-prompt');
+      if (mpPromptEl) mpPromptEl.value = promptText;
+
     }
 
     document.getElementById('mp-btn').addEventListener('click', function () {
@@ -354,6 +392,21 @@ const base = import.meta.env.BASE_URL;
         return;
       }
       render();
+    });
+
+    const mpCopyBtn = document.getElementById('mp-copy');
+    if (mpCopyBtn) mpCopyBtn.addEventListener('click', function () {
+      const ta = document.getElementById('mp-prompt');
+      if (!ta) return;
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).then(function () { ok = true; }).catch(function () {});
+      }
+      const tip = document.getElementById('mp-copy-tip');
+      if (tip) tip.textContent = ok ? '✅ 已复制，去 AI 里粘贴吧' : '请手动复制（Ctrl/Cmd+C）';
+      setTimeout(function () { if (tip) tip.textContent = ''; }, 3000);
     });
 
     const now = new Date();

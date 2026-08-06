@@ -66,17 +66,17 @@ window.MingLiPay = (function () {
       overlay.innerHTML =
         '<div class="ml-pay-modal" role="dialog" aria-modal="true">' +
           '<button class="ml-pay-close" id="ml-pay-close" type="button" aria-label="关闭">×</button>' +
-          '<h3>🔓 解锁命理解读</h3>' +
-          '<p class="ml-pay-desc">本解读为付费内容。扫码打赏 <b>¥' + minTip + ' 起（金额不限）</b> 后，请输入作者私发的解锁码查看（作者本人免付费）。</p>' +
-          '<label class="ml-pay-amount-label">解锁码' +
-            '<input id="ml-pay-code" type="text" placeholder="请输入解锁码" autocomplete="off" />' +
-          '</label>' +
+          '<h3>☕ 请作者喝杯咖啡</h3>' +
+          '<p class="ml-pay-desc">命理工具完全免费、开源可查。若这份解读帮你更了解自己，欢迎扫码<b>请我喝杯咖啡☕</b>（金额随意）。喝不喝都行，解读都给你看。</p>' +
           '<div class="ml-pay-qrs">' +
             '<div class="ml-pay-qr"><div class="ml-pay-qr-img"><img id="ml-pay-wx" alt="微信收款码" /></div><p>微信</p></div>' +
             '<div class="ml-pay-qr"><div class="ml-pay-qr-img"><img id="ml-pay-ali" alt="支付宝收款码" /></div><p>支付宝</p></div>' +
           '</div>' +
-          '<p class="ml-pay-qr-tip">扫码支付后，凭作者发送的解锁码在此输入即可查看解读。</p>' +
-          '<button class="ml-pay-confirm" id="ml-pay-unlock" type="button">输入解锁码，查看解读</button>' +
+          '<p class="ml-pay-qr-tip">打赏后凭作者私发的解锁码可免弹窗；也可以直接查看。</p>' +
+          '<label class="ml-pay-amount-label">解锁码（打赏后向作者索取，可留空）' +
+            '<input id="ml-pay-code" type="text" placeholder="已打赏可填解锁码，否则直接点下方按钮" autocomplete="off" />' +
+          '</label>' +
+          '<button class="ml-pay-confirm" id="ml-pay-unlock" type="button">我已了解，查看解读</button>' +
         '</div>';
       document.body.appendChild(overlay);
     }
@@ -87,16 +87,17 @@ window.MingLiPay = (function () {
 
     overlay.querySelector('#ml-pay-unlock').onclick = function () {
       var input = (overlay.querySelector('#ml-pay-code').value || '').trim();
-      if (!input) { alert('请输入解锁码'); return; }
       var expected = '';
       try { expected = atob(codeB64); } catch (e) { expected = ''; }
-      if (expected && input.toLowerCase() === expected.toLowerCase()) {
+      // 喝咖啡模式：输入正确解锁码则记为已解锁（免后续弹窗）；留空或跳过也允许直接查看（honor system）
+      if (expected && input && input.toLowerCase() === expected.toLowerCase()) {
         unlock();
-        overlay.style.display = 'none';
-        if (typeof onUnlock === 'function') onUnlock();
-      } else {
-        alert('解锁码不正确，请确认是否已打赏并向作者索取解锁码。');
+      } else if (input && expected && input.toLowerCase() !== expected.toLowerCase()) {
+        alert('解锁码不正确（打赏后向作者索取）。也可直接点“查看解读”。');
+        return;
       }
+      overlay.style.display = 'none';
+      if (typeof onUnlock === 'function') onUnlock();
     };
     overlay.querySelector('#ml-pay-close').onclick = function () { overlay.style.display = 'none'; };
     overlay.onclick = function (e) { if (e.target === overlay) overlay.style.display = 'none'; };
