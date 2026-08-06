@@ -70,6 +70,11 @@ const base = import.meta.env.BASE_URL;
       </div>
     </section>
 
+    <section class="tool-card interp-card">
+      <h2>📖 命盘解读</h2>
+      <div id="lp-interp"></div>
+    </section>
+
     <section class="tool-card">
       <h2>🌊 大运</h2>
       <div class="table-wrap"><table class="lp-table" id="lp-dayun"></table></div>
@@ -137,6 +142,15 @@ const base = import.meta.env.BASE_URL;
     .current { background: rgba(124,92,255,0.10); }
     .relation-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; font-size: 14px; }
     .relation-pill { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; background: var(--code-bg); }
+
+    .interp-card .interp-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 16px; }
+    .interp-chip { border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; background: var(--code-bg); min-width: 110px; }
+    .interp-chip .k { font-size: 12px; color: var(--muted); }
+    .interp-chip .v { font-size: 15px; font-weight: 600; color: var(--accent); margin-top: 2px; }
+    .interp-sec { margin: 14px 0; }
+    .interp-sec h4 { margin: 0 0 6px; font-size: 14px; color: var(--fg); border-left: 3px solid var(--accent); padding-left: 8px; }
+    .interp-sec p { margin: 0; font-size: 14px; line-height: 1.8; color: var(--fg); }
+    .interp-foot { font-size: 12px; color: var(--muted); margin-top: 14px; }
   </style>
 
   <script is:inline src={`${base}lunar.js`}></script>
@@ -345,6 +359,99 @@ const base = import.meta.env.BASE_URL;
       };
     }
 
+    function liuComment(gan, dayGan) {
+      const ss = shiShen(dayGan, gan);
+      const map = {
+        '正官': '事业上有新机会或规矩约束，宜稳守、忌冒进。',
+        '七杀': '压力与挑战并存，利于突破但需防小人与身体透支。',
+        '正财': '正财当令，踏实进财、利稳定收入。',
+        '偏财': '偏财浮现，或有意外之财、投资机遇，宜见好就收。',
+        '正印': '贵人、学习运强，利考试进修、得长辈提携。',
+        '偏印': '偏门才学、灵感来，但易多思多疑，宜专注一事。',
+        '食神': '才华外向、心情愉悦，利表达创作与人际。',
+        '伤官': '才思敏捷但言辞易锋利，防口舌、宜收敛。',
+        '比肩': '同辈助力多，合作运佳，亦防分财。',
+        '劫财': '竞争加剧，钱财易散，合作需明算账。'
+      };
+      return (ss && map[ss]) ? ('（' + ss + '）' + map[ss]) : '';
+    }
+    function interpret(data, dayGan, dayZhi) {
+      const dw = GAN_WUXING[dayGan];
+      const pillars = [data.year, data.month, data.day, data.time, data.currentDaYun, data.currentLiuNian, data.currentLiuYue, data.currentLiuRi, data.currentLiuShi].filter(Boolean);
+      const wuCount = { '木': 0, '火': 0, '土': 0, '金': 0, '水': 0 };
+      let score = 0;
+      pillars.forEach(function (gz) {
+        const sp = splitGZ(gz);
+        const gw = GAN_WUXING[sp.gan];
+        const zb = ZHI_CANG[sp.zhi] ? ZHI_CANG[sp.zhi][0] : sp.gan;
+        const zw = GAN_WUXING[zb];
+        [[gw, 1], [zw, 0.5]].forEach(function (pair) {
+          const w = pair[0]; const wt = pair[1];
+          wuCount[w] += wt;
+          if (w === dw) score += wt;
+          else if (WUXING_SHENG[w] === dw) score += wt;
+          else if (WUXING_SHENG[dw] === w) score -= wt;
+          else if (WUXING_KE[dw] === w) score -= wt;
+          else if (WUXING_KE[w] === dw) score -= wt;
+        });
+      });
+      const monthZhi = data.month[1];
+      const stage = diShi(dayGan, monthZhi);
+      const strongStage = ['长生', '冠带', '临官', '帝旺'];
+      if (strongStage.indexOf(stage) >= 0) score += 1.5;
+      else if (['墓', '养'].indexOf(stage) >= 0) score += 0.3;
+      else score -= 1.0;
+      let label, advice;
+      if (score >= 2) { label = '身旺（偏强）'; advice = '宜用克、泄、耗来平衡'; }
+      else if (score <= -2) { label = '身弱（偏弱）'; advice = '宜用生、扶来助身'; }
+      else { label = '中和'; advice = '寒暖燥湿看调候，整体较平衡'; }
+      const yin = []; for (const k in WUXING_SHENG) if (WUXING_SHENG[k] === dw) yin.push(k);
+      const keWo = []; for (const k in WUXING_KE) if (WUXING_KE[k] === dw) keWo.push(k);
+      let xi;
+      if (label.indexOf('弱') >= 0) xi = [dw].concat(yin);
+      else if (label.indexOf('旺') >= 0) xi = keWo.concat([WUXING_SHENG[dw], WUXING_KE[dw]]);
+      else xi = [dw].concat(yin, [WUXING_SHENG[dw]]);
+      const seen = {}; xi = xi.filter(function (v) { if (seen[v]) return false; seen[v] = 1; return true; });
+      const missing = []; for (const k in wuCount) if (wuCount[k] === 0) missing.push(k);
+      const weakEls = Object.keys(wuCount).sort(function (a, b) { return wuCount[a] - wuCount[b]; }).slice(0, 2);
+      const wuStr = ['木', '火', '土', '金', '水'].map(function (k) { return k + (Math.round(wuCount[k] * 10) / 10); }).join(' ');
+      const catCount = { '官杀': 0, '财': 0, '印': 0, '食伤': 0, '比劫': 0 };
+      const catMap = { '正官': '官杀', '七杀': '官杀', '正财': '财', '偏财': '财', '正印': '印', '偏印': '印', '食神': '食伤', '伤官': '食伤', '比肩': '比劫', '劫财': '比劫' };
+      pillars.forEach(function (gz) { const ss = shiShen(dayGan, gz[0]); if (catMap[ss]) catCount[catMap[ss]]++; });
+      const catDesc = [];
+      if (catCount['财']) catDesc.push('财星较显，务实重利');
+      if (catCount['官杀']) catDesc.push('官杀有力，事业心强、自带压力');
+      if (catCount['印']) catDesc.push('印星相佐，喜学、易得助');
+      if (catCount['食伤']) catDesc.push('食伤外露，才华与表达欲强');
+      if (catCount['比劫']) catDesc.push('比劫不少，重情义、朋友多');
+      const catText = catDesc.length ? (catDesc.join('；') + '。') : '十神分布较均衡。';
+      const lyC = liuComment(data.currentLiuNian ? data.currentLiuNian[0] : '', dayGan);
+      const lmC = liuComment(data.currentLiuYue ? data.currentLiuYue[0] : '', dayGan);
+      const ldC = liuComment(data.currentLiuRi ? data.currentLiuRi[0] : '', dayGan);
+      const lsC = liuComment(data.currentLiuShi ? data.currentLiuShi[0] : '', dayGan);
+      const ms = shiShen(dayGan, data.month[0]);
+      const missXi = missing.filter(function (m) { return xi.indexOf(m) >= 0; });
+      return ''
+        + '<div class="interp-grid">'
+        + '<div class="interp-chip"><div class="k">日主</div><div class="v">' + dayGan + dayZhi + '（' + dw + '）</div></div>'
+        + '<div class="interp-chip"><div class="k">强弱</div><div class="v">' + label + '</div></div>'
+        + '<div class="interp-chip"><div class="k">月令</div><div class="v">' + monthZhi + '·' + stage + '</div></div>'
+        + '<div class="interp-chip"><div class="k">喜用神</div><div class="v">' + xi.join('、') + '</div></div>'
+        + '</div>'
+        + '<div class="interp-sec"><h4>格局与强弱</h4><p>日主为<b>' + dw + '</b>（' + dayGan + dayZhi + '），命局<b>' + label + '</b>。月令' + monthZhi + '处于「' + stage + '」' + (strongStage.indexOf(stage) >= 0 ? '（得令）' : '（失令）') + '；' + advice + '。月干为' + data.month[0] + '（' + ms + '）、日主坐' + dayZhi + '。</p></div>'
+        + '<div class="interp-sec"><h4>五行分布</h4><p>木火土金水计数：' + wuStr + '。' + (missing.length ? '命局<b>缺' + missing.join('、') + '</b>，' : '五行无明显缺失，') + '相对偏弱者为' + weakEls.join('、') + '。' + (missXi.length ? '所缺恰为喜用神，宜在穿戴、方位、行业上补' + missXi.join('、') + '。' : '') + '</p></div>'
+        + '<div class="interp-sec"><h4>十神格局</h4><p>' + catText + '</p></div>'
+        + '<div class="interp-sec"><h4>用神建议</h4><p>喜用神为<b>' + xi.join('、') + '</b>。' + (label.indexOf('弱') >= 0 ? '命局偏弱，宜向喜用神五行靠拢以助身。' : label.indexOf('旺') >= 0 ? '命局偏强，宜用喜用神五行疏通、泄秀。' : '整体中和，喜用神可作调候参考。') + '</p></div>'
+        + '<div class="interp-sec"><h4>大运 · 流年 · 流月 · 流日 · 流时 简评</h4><p>'
+        + '当前大运 <b>' + (data.currentDaYun || '—') + '</b>；'
+        + '流年 <b>' + (data.currentLiuNian || '—') + '</b>' + lyC + ' '
+        + '流月 <b>' + (data.currentLiuYue || '—') + '</b>' + lmC + ' '
+        + '流日 <b>' + (data.currentLiuRi || '—') + '</b>' + ldC + ' '
+        + '流时 <b>' + (data.currentLiuShi || '—') + '</b>' + lsC
+        + '</p></div>'
+        + '<p class="interp-foot">※ 以上为规则化简版自动解读，仅供娱乐与文化了解，不构成任何人生、投资或健康建议。</p>';
+    }
+
     function render() {
       const p = readDate('lp');
       if (!p) { alert('请选择出生日期'); return; }
@@ -465,6 +572,9 @@ const base = import.meta.env.BASE_URL;
         { l: '时', z: data.time[1] }, { l: '运', z: data.currentDaYun[1] }, { l: '流', z: data.currentLiuNian[1] }
       ];
       document.getElementById('lp-relations').innerHTML = computeRelations(relList);
+
+      const interpEl = document.getElementById('lp-interp');
+      if (interpEl) interpEl.innerHTML = interpret(data, dayGan, dayZhi);
     }
 
     document.getElementById('lp-btn').addEventListener('click', function () {

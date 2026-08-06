@@ -70,6 +70,11 @@ const base = import.meta.env.BASE_URL;
       </div>
     </section>
 
+    <section class="tool-card interp-card">
+      <h2>📖 Chart Interpretation</h2>
+      <div id="lp-interp"></div>
+    </section>
+
     <section class="tool-card">
       <h2>🌊 Da Yun (Great Luck)</h2>
       <div class="table-wrap"><table class="lp-table" id="lp-dayun"></table></div>
@@ -137,6 +142,15 @@ const base = import.meta.env.BASE_URL;
     .current { background: rgba(124,92,255,0.10); }
     .relation-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; font-size: 14px; }
     .relation-pill { border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; background: var(--code-bg); }
+
+    .interp-card .interp-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 16px; }
+    .interp-chip { border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; background: var(--code-bg); min-width: 110px; }
+    .interp-chip .k { font-size: 12px; color: var(--muted); }
+    .interp-chip .v { font-size: 15px; font-weight: 600; color: var(--accent); margin-top: 2px; }
+    .interp-sec { margin: 14px 0; }
+    .interp-sec h4 { margin: 0 0 6px; font-size: 14px; color: var(--fg); border-left: 3px solid var(--accent); padding-left: 8px; }
+    .interp-sec p { margin: 0; font-size: 14px; line-height: 1.8; color: var(--fg); }
+    .interp-foot { font-size: 12px; color: var(--muted); margin-top: 14px; }
   </style>
 
   <script is:inline src={`${base}lunar.js`}></script>
@@ -345,6 +359,100 @@ const base = import.meta.env.BASE_URL;
       };
     }
 
+    function liuComment(gan, dayGan) {
+      const ss = shiShen(dayGan, gan);
+      const map = {
+        '正官': 'new structure or constraints at work — favor steadiness over bold moves.',
+        '七杀': 'pressure and challenges coexist — good for breakthroughs, but guard against conflict and burnout.',
+        '正财': 'steady income is in focus — solid, reliable earnings.',
+        '偏财': 'side income appears — windfalls or investment openings; take profit when you have it.',
+        '正印': 'strong benefactor and study luck — good for exams, learning, and elder support.',
+        '偏印': 'unconventional talent and inspiration surface, but watch overthinking — stay focused on one thing.',
+        '食神': 'talent turns outward and mood lifts — good for expression, creativity, and rapport.',
+        '伤官': 'sharp wit but a pointed tongue — avoid disputes; keep it measured.',
+        '比肩': 'peer support is strong — good for cooperation, though watch shared costs.',
+        '劫财': 'competition rises and money scatters easily — settle accounts clearly when partnering.'
+      };
+      return (ss && map[ss]) ? (' (' + ss + ') ' + map[ss]) : '';
+    }
+    function interpret(data, dayGan, dayZhi) {
+      const dw = GAN_WUXING[dayGan];
+      const pillars = [data.year, data.month, data.day, data.time, data.currentDaYun, data.currentLiuNian, data.currentLiuYue, data.currentLiuRi, data.currentLiuShi].filter(Boolean);
+      const wuCount = { '木': 0, '火': 0, '土': 0, '金': 0, '水': 0 };
+      let score = 0;
+      pillars.forEach(function (gz) {
+        const sp = splitGZ(gz);
+        const gw = GAN_WUXING[sp.gan];
+        const zb = ZHI_CANG[sp.zhi] ? ZHI_CANG[sp.zhi][0] : sp.gan;
+        const zw = GAN_WUXING[zb];
+        [[gw, 1], [zw, 0.5]].forEach(function (pair) {
+          const w = pair[0]; const wt = pair[1];
+          wuCount[w] += wt;
+          if (w === dw) score += wt;
+          else if (WUXING_SHENG[w] === dw) score += wt;
+          else if (WUXING_SHENG[dw] === w) score -= wt;
+          else if (WUXING_KE[dw] === w) score -= wt;
+          else if (WUXING_KE[w] === dw) score -= wt;
+        });
+      });
+      const monthZhi = data.month[1];
+      const stage = diShi(dayGan, monthZhi);
+      const strongStage = ['长生', '冠带', '临官', '帝旺'];
+      if (strongStage.indexOf(stage) >= 0) score += 1.5;
+      else if (['墓', '养'].indexOf(stage) >= 0) score += 0.3;
+      else score -= 1.0;
+      let label, advice;
+      if (score >= 2) { label = 'Strong'; advice = 'balance it with controlling, draining, or consuming elements'; }
+      else if (score <= -2) { label = 'Weak'; advice = 'support the day master with generating and helping elements'; }
+      else { label = 'Balanced'; advice = 'adjust for climate (warm/cool, damp/dry); overall fairly even'; }
+      const yin = []; for (const k in WUXING_SHENG) if (WUXING_SHENG[k] === dw) yin.push(k);
+      const keWo = []; for (const k in WUXING_KE) if (WUXING_KE[k] === dw) keWo.push(k);
+      let xi;
+      if (label.indexOf('Weak') >= 0) xi = [dw].concat(yin);
+      else if (label.indexOf('Strong') >= 0) xi = keWo.concat([WUXING_SHENG[dw], WUXING_KE[dw]]);
+      else xi = [dw].concat(yin, [WUXING_SHENG[dw]]);
+      const seen = {}; xi = xi.filter(function (v) { if (seen[v]) return false; seen[v] = 1; return true; });
+      const missing = []; for (const k in wuCount) if (wuCount[k] === 0) missing.push(k);
+      const weakEls = Object.keys(wuCount).sort(function (a, b) { return wuCount[a] - wuCount[b]; }).slice(0, 2);
+      const wuLabel = { '木': 'Wood', '火': 'Fire', '土': 'Earth', '金': 'Metal', '水': 'Water' };
+      const wuStr = ['木', '火', '土', '金', '水'].map(function (k) { return wuLabel[k] + ' ' + (Math.round(wuCount[k] * 10) / 10); }).join(' · ');
+      const catCount = { '官杀': 0, '财': 0, '印': 0, '食伤': 0, '比劫': 0 };
+      const catMap = { '正官': '官杀', '七杀': '官杀', '正财': '财', '偏财': '财', '正印': '印', '偏印': '印', '食神': '食伤', '伤官': '食伤', '比肩': '比劫', '劫财': '比劫' };
+      pillars.forEach(function (gz) { const ss = shiShen(dayGan, gz[0]); if (catMap[ss]) catCount[catMap[ss]]++; });
+      const catDesc = [];
+      if (catCount['财']) catDesc.push('wealth stars stand out — practical and gain-oriented');
+      if (catCount['官杀']) catDesc.push('career/authority stars are strong — driven, with self-imposed pressure');
+      if (catCount['印']) catDesc.push('resource stars assist — fond of learning, easy to get help');
+      if (catCount['食伤']) catDesc.push('expression stars show — talented and expressive');
+      if (catCount['比劫']) catDesc.push('peer stars abound — loyal, with many friends');
+      const catText = catDesc.length ? (catDesc.join('; ') + '.') : 'The ten gods are fairly evenly distributed.';
+      const lyC = liuComment(data.currentLiuNian ? data.currentLiuNian[0] : '', dayGan);
+      const lmC = liuComment(data.currentLiuYue ? data.currentLiuYue[0] : '', dayGan);
+      const ldC = liuComment(data.currentLiuRi ? data.currentLiuRi[0] : '', dayGan);
+      const lsC = liuComment(data.currentLiuShi ? data.currentLiuShi[0] : '', dayGan);
+      const ms = shiShen(dayGan, data.month[0]);
+      const missXi = missing.filter(function (m) { return xi.indexOf(m) >= 0; });
+      return ''
+        + '<div class="interp-grid">'
+        + '<div class="interp-chip"><div class="k">Day Master</div><div class="v">' + dayGan + dayZhi + ' (' + wuLabel[dw] + ')</div></div>'
+        + '<div class="interp-chip"><div class="k">Strength</div><div class="v">' + label + '</div></div>'
+        + '<div class="interp-chip"><div class="k">Month Lord</div><div class="v">' + monthZhi + ' · ' + stage + '</div></div>'
+        + '<div class="interp-chip"><div class="k">Favorable</div><div class="v">' + xi.map(e => wuLabel[e]).join(', ') + '</div></div>'
+        + '</div>'
+        + '<div class="interp-sec"><h4>Pattern & Strength</h4><p>The day master is <b>' + wuLabel[dw] + '</b> (' + dayGan + dayZhi + '), and the chart reads as <b>' + label + '</b>. The month branch ' + monthZhi + ' sits at "' + stage + '" ' + (strongStage.indexOf(stage) >= 0 ? '(in season)' : '(out of season)') + '; ' + advice + '. The month stem is ' + data.month[0] + ' (' + ms + '), and the day master seats on ' + dayZhi + '.</p></div>'
+        + '<div class="interp-sec"><h4>Five-Element Spread</h4><p>Wood·Fire·Earth·Metal·Water counts: ' + wuStr + '. ' + (missing.length ? 'The chart <b>lacks ' + missing.map(e => wuLabel[e]).join(', ') + '</b>; ' : 'No obvious element is missing; ') + 'the relatively weakest are ' + weakEls.map(e => wuLabel[e]).join(', ') + '. ' + (missXi.length ? 'What is missing happens to be favorable — replenish ' + missXi.map(e => wuLabel[e]).join(', ') + ' via dress, direction, or industry.' : '') + '</p></div>'
+        + '<div class="interp-sec"><h4>Ten-God Pattern</h4><p>' + catText + '</p></div>'
+        + '<div class="interp-sec"><h4>Favorable Elements</h4><p>Favorable elements are <b>' + xi.map(e => wuLabel[e]).join(', ') + '</b>. ' + (label.indexOf('Weak') >= 0 ? 'The chart leans weak — lean toward the favorable elements to support the day master.' : label.indexOf('Strong') >= 0 ? 'The chart leans strong — use the favorable elements to drain and harmonize.' : 'Overall balanced — treat the favorable elements as a climate-adjustment reference.') + '</p></div>'
+        + '<div class="interp-sec"><h4>Da Yun · Liu Nian · Liu Yue · Liu Ri · Liu Shi Notes</h4><p>'
+        + 'Current Da Yun <b>' + (data.currentDaYun || '—') + '</b>; '
+        + 'Liu Nian <b>' + (data.currentLiuNian || '—') + '</b>' + lyC + ' '
+        + 'Liu Yue <b>' + (data.currentLiuYue || '—') + '</b>' + lmC + ' '
+        + 'Liu Ri <b>' + (data.currentLiuRi || '—') + '</b>' + ldC + ' '
+        + 'Liu Shi <b>' + (data.currentLiuShi || '—') + '</b>' + lsC
+        + '</p></div>'
+        + '<p class="interp-foot">※ This is a rule-based auto-interpretation for entertainment and cultural curiosity only — not life, financial, or health advice.</p>';
+    }
+
     function render() {
       const p = readDate('lp');
       if (!p) { alert('Please pick a birth date'); return; }
@@ -465,6 +573,9 @@ const base = import.meta.env.BASE_URL;
         { l: 'Hr', z: data.time[1] }, { l: 'Yun', z: data.currentDaYun[1] }, { l: 'Liu', z: data.currentLiuNian[1] }
       ];
       document.getElementById('lp-relations').innerHTML = computeRelationsEN(relList);
+
+      const interpEl = document.getElementById('lp-interp');
+      if (interpEl) interpEl.innerHTML = interpret(data, dayGan, dayZhi);
     }
 
     document.getElementById('lp-btn').addEventListener('click', function () {
